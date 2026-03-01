@@ -1,247 +1,195 @@
 import { Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
-import { Shield, Home, Briefcase, Users, ArrowRight, Heart, Building2, Leaf } from "lucide-react";
-import heroImage from "@/assets/hero-community.jpg";
+import { Shield, Home, Briefcase, ArrowRight, FileText, MessageSquare, Users, Clock, Target, TrendingUp, CheckCircle2, Building2 } from "lucide-react";
 
 const Index = () => {
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="relative min-h-[90vh] flex items-center">
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${heroImage})` }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/95 via-primary/85 to-primary/70" />
-        </div>
-        
-        <div className="relative container-wide section-padding py-20 lg:py-32">
+      <section className="relative bg-primary text-primary-foreground">
+        <div className="container-wide section-padding py-20 lg:py-28">
           <div className="max-w-3xl animate-fade-in-up">
-            <p className="text-primary-foreground/80 font-medium mb-4 tracking-wide uppercase text-sm">
-              Serving Bucks & Montgomery Counties, Pennsylvania
-            </p>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif font-bold text-primary-foreground leading-tight mb-6">
-              A Clear Path from Crisis to Stability
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif font-bold leading-tight mb-4">
+              Klear Path
             </h1>
-            <p className="text-lg sm:text-xl text-primary-foreground/90 mb-8 max-w-2xl leading-relaxed">
-              Klear Path is building Pennsylvania's first integrated housing, safety, and workforce 
-              campus—designed with our neighbors experiencing homelessness, not just for them.
+            <p className="text-xl sm:text-2xl font-serif text-primary-foreground/90 mb-6">
+              Structured Housing & Workforce Infrastructure
+            </p>
+            <p className="text-lg text-primary-foreground/80 mb-10 max-w-2xl leading-relaxed">
+              A 501(c)(3) nonprofit designing stability-first housing solutions in Bucks County, PA.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link to="/donate">
-                <Button variant="hero" size="xl">
-                  <Heart className="w-5 h-5" />
-                  Donate Now
-                </Button>
-              </Link>
-              <Link to="/partners">
+              <Button variant="hero" size="xl">
+                <FileText className="w-5 h-5" />
+                Download Mission Brief
+              </Button>
+              <Link to="/contact">
                 <Button variant="hero-outline" size="xl">
-                  Partner With Us
-                </Button>
-              </Link>
-              <Link to="/get-involved">
-                <Button variant="hero-outline" size="xl">
-                  Volunteer
+                  <MessageSquare className="w-5 h-5" />
+                  Request Strategic Conversation
                 </Button>
               </Link>
             </div>
           </div>
         </div>
+
+        {/* Credibility Bar */}
+        <div className="border-t border-primary-foreground/15">
+          <div className="container-wide section-padding py-6">
+            <div className="grid sm:grid-cols-3 gap-4 text-sm text-primary-foreground/80">
+              <p>Homelessness in Bucks County has nearly doubled in five years.</p>
+              <p>The current system is reactive.</p>
+              <p className="font-semibold text-primary-foreground">Klear Path builds structured alternatives.</p>
+            </div>
+          </div>
+        </div>
       </section>
 
-      {/* Mission Statement */}
+      {/* Problem Section */}
+      <section className="py-16 lg:py-24 bg-background">
+        <div className="container-wide section-padding">
+          <div className="max-w-4xl">
+            <h2 className="text-3xl lg:text-4xl font-serif font-bold text-foreground mb-6">
+              The Cost of System Fragmentation
+            </h2>
+            <p className="text-lg text-muted-foreground leading-relaxed mb-8">
+              Bucks County's existing homelessness response relies on disconnected emergency 
+              interventions. Without structured stabilization pathways, individuals cycle through 
+              shelters, emergency rooms, and the criminal justice system—at significant public cost 
+              and with minimal long-term outcomes.
+            </p>
+            <div className="grid sm:grid-cols-2 gap-6">
+              <div className="bg-card border border-border rounded-xl p-6">
+                <p className="text-3xl font-serif font-bold text-primary mb-2">400+</p>
+                <p className="text-muted-foreground text-sm">Individuals identified in the latest Point-in-Time count</p>
+              </div>
+              <div className="bg-card border border-border rounded-xl p-6">
+                <p className="text-3xl font-serif font-bold text-primary mb-2">~2×</p>
+                <p className="text-muted-foreground text-sm">Increase in unsheltered homelessness over five years</p>
+              </div>
+              <div className="bg-card border border-border rounded-xl p-6">
+                <p className="text-3xl font-serif font-bold text-primary mb-2">$50K–$80K</p>
+                <p className="text-muted-foreground text-sm">Estimated annual public cost per chronically homeless individual</p>
+              </div>
+              <div className="bg-card border border-border rounded-xl p-6">
+                <p className="text-3xl font-serif font-bold text-primary mb-2">High</p>
+                <p className="text-muted-foreground text-sm">Recidivism rate driven by fragmented service delivery</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Three-Phase Model */}
       <section className="py-16 lg:py-24 bg-secondary">
         <div className="container-wide section-padding">
-          <div className="max-w-4xl mx-auto text-center animate-fade-in">
-            <h2 className="text-3xl lg:text-4xl font-serif font-semibold text-foreground mb-6">
-              Dignity-First, Systems-Focused
+          <div className="mb-12">
+            <h2 className="text-3xl lg:text-4xl font-serif font-bold text-foreground mb-4">
+              Phased Stabilization Model
             </h2>
-            <p className="text-lg text-muted-foreground leading-relaxed">
-              We believe every community member seeking stability deserves more than a bed—they 
-              deserve a pathway to lasting independence. Our integrated model combines immediate 
-              safety, dignified transitional housing, and workforce development into one 
-              comprehensive campus designed to break the cycle of homelessness.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* The Three Pillars */}
-      <section className="py-16 lg:py-24">
-        <div className="container-wide section-padding">
-          <div className="text-center mb-12 lg:mb-16">
-            <h2 className="text-3xl lg:text-4xl font-serif font-semibold text-foreground mb-4">
-              Our Integrated Model
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Three interconnected programs working together to create lasting change.
+            <p className="text-lg text-muted-foreground max-w-3xl">
+              A structured, outcome-oriented framework that moves individuals from crisis 
+              to independence through defined phases with clear milestones.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
-            {/* 24/7 Safety Center */}
-            <div className="bg-card rounded-xl p-6 lg:p-8 shadow-soft hover:shadow-medium transition-shadow border border-border">
-              <div className="w-14 h-14 rounded-lg bg-primary/10 flex items-center justify-center mb-5">
-                <Shield className="w-7 h-7 text-primary" />
+          <div className="grid lg:grid-cols-3 gap-6">
+            {/* Phase 1 */}
+            <div className="bg-card rounded-xl border border-border p-8 relative">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Shield className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-primary">Phase 1</p>
+                  <h3 className="text-lg font-serif font-semibold text-foreground">Stabilization</h3>
+                </div>
               </div>
-              <h3 className="text-xl font-serif font-semibold text-foreground mb-3">
-                24/7 Safety Center
-              </h3>
-              <p className="text-muted-foreground leading-relaxed mb-4">
-                A welcoming first point of contact offering immediate safety, warm meals, 
-                showers, and connection to case management services—open around the clock.
-              </p>
-              <Link to="/model" className="inline-flex items-center gap-1 text-primary font-medium hover:gap-2 transition-all">
-                Learn more <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
-
-            {/* Micro-Village Housing */}
-            <div className="bg-card rounded-xl p-6 lg:p-8 shadow-soft hover:shadow-medium transition-shadow border border-border">
-              <div className="w-14 h-14 rounded-lg bg-primary/10 flex items-center justify-center mb-5">
-                <Home className="w-7 h-7 text-primary" />
+              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+                <Clock className="w-4 h-4" />
+                <span>0–30 Days</span>
               </div>
-              <h3 className="text-xl font-serif font-semibold text-foreground mb-3">
-                Micro-Village Housing
-              </h3>
-              <p className="text-muted-foreground leading-relaxed mb-4">
-                25 private, dignified pod-style units in Phase 1, providing transitional 
-                housing where residents can rest, recover, and focus on their next steps.
+              <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+                Immediate safety, hygiene access, intake assessment, structured onboarding.
               </p>
-              <Link to="/model" className="inline-flex items-center gap-1 text-primary font-medium hover:gap-2 transition-all">
-                Learn more <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
-
-            {/* Workforce Pathway */}
-            <div className="bg-card rounded-xl p-6 lg:p-8 shadow-soft hover:shadow-medium transition-shadow border border-border">
-              <div className="w-14 h-14 rounded-lg bg-primary/10 flex items-center justify-center mb-5">
-                <Briefcase className="w-7 h-7 text-primary" />
+              <div className="border-t border-border pt-4 space-y-2">
+                <div className="flex items-start gap-2 text-sm">
+                  <Target className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                  <span className="text-muted-foreground"><span className="font-medium text-foreground">Outcome:</span> Safe baseline established</span>
+                </div>
+                <div className="flex items-start gap-2 text-sm">
+                  <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                  <span className="text-muted-foreground"><span className="font-medium text-foreground">Purpose:</span> Remove immediate crisis barriers</span>
+                </div>
               </div>
-              <h3 className="text-xl font-serif font-semibold text-foreground mb-3">
-                Workforce & Skills Pathway
-              </h3>
-              <p className="text-muted-foreground leading-relaxed mb-4">
-                Job training programs including solar installation and sustainability 
-                skills—creating green-economy careers while residents build their futures.
+            </div>
+
+            {/* Phase 2 */}
+            <div className="bg-card rounded-xl border border-border p-8 relative">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Home className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-primary">Phase 2</p>
+                  <h3 className="text-lg font-serif font-semibold text-foreground">Structured Pod Residency</h3>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+                <Clock className="w-4 h-4" />
+                <span>30–90 Days</span>
+              </div>
+              <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+                Private micro-units, defined expectations, case management, stability routines.
               </p>
-              <Link to="/model" className="inline-flex items-center gap-1 text-primary font-medium hover:gap-2 transition-all">
-                Learn more <ArrowRight className="w-4 h-4" />
-              </Link>
+              <div className="border-t border-border pt-4 space-y-2">
+                <div className="flex items-start gap-2 text-sm">
+                  <Target className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                  <span className="text-muted-foreground"><span className="font-medium text-foreground">Outcome:</span> Structured daily living maintained</span>
+                </div>
+                <div className="flex items-start gap-2 text-sm">
+                  <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                  <span className="text-muted-foreground"><span className="font-medium text-foreground">Purpose:</span> Build capacity for self-management</span>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      </section>
 
-      {/* Call for Partners */}
-      <section className="py-16 lg:py-24 bg-primary text-primary-foreground">
-        <div className="container-wide section-padding">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <p className="text-primary-foreground/70 font-medium mb-3 tracking-wide uppercase text-sm">
-                Partnership Opportunity
+            {/* Phase 3 */}
+            <div className="bg-card rounded-xl border border-border p-8 relative">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Briefcase className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-primary">Phase 3</p>
+                  <h3 className="text-lg font-serif font-semibold text-foreground">Workforce Integration</h3>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+                <Clock className="w-4 h-4" />
+                <span>90–365 Days</span>
+              </div>
+              <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+                Skill development, income pathway, transition planning.
               </p>
-              <h2 className="text-3xl lg:text-4xl font-serif font-semibold mb-6">
-                We're Seeking a Land Partner
-              </h2>
-              <p className="text-primary-foreground/90 text-lg leading-relaxed mb-6">
-                To build the Klear Path campus, we need approximately 10 acres of land in 
-                Bucks or Montgomery County. We're open to donation, ground lease, or 
-                public-purpose transfer arrangements.
-              </p>
-              <ul className="space-y-3 mb-8">
-                <li className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-full bg-primary-foreground/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <Building2 className="w-3.5 h-3.5" />
-                  </div>
-                  <span className="text-primary-foreground/90">County governments and municipal authorities</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-full bg-primary-foreground/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <Users className="w-3.5 h-3.5" />
-                  </div>
-                  <span className="text-primary-foreground/90">Faith communities with available property</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-full bg-primary-foreground/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <Leaf className="w-3.5 h-3.5" />
-                  </div>
-                  <span className="text-primary-foreground/90">Private landowners interested in social impact</span>
-                </li>
-              </ul>
-              <Link to="/partners">
-                <Button variant="hero" size="lg">
-                  Explore Partnership Details
-                  <ArrowRight className="w-4 h-4" />
-                </Button>
-              </Link>
-            </div>
-            <div className="bg-primary-light/30 rounded-2xl p-8 lg:p-10">
-              <h3 className="font-serif text-2xl font-semibold mb-4">What We Bring</h3>
-              <ul className="space-y-4">
-                <li className="flex items-start gap-3">
-                  <div className="w-2 h-2 rounded-full bg-primary-foreground mt-2.5" />
-                  <span>Full compliance with local zoning and building codes</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <div className="w-2 h-2 rounded-full bg-primary-foreground mt-2.5" />
-                  <span>Professional campus management and security</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <div className="w-2 h-2 rounded-full bg-primary-foreground mt-2.5" />
-                  <span>Reduction in emergency service costs for the county</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <div className="w-2 h-2 rounded-full bg-primary-foreground mt-2.5" />
-                  <span>Data-driven outcomes reporting and transparency</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <div className="w-2 h-2 rounded-full bg-primary-foreground mt-2.5" />
-                  <span>Integration with existing county social services</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Impact Preview */}
-      <section className="py-16 lg:py-24">
-        <div className="container-wide section-padding">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-serif font-semibold text-foreground mb-4">
-              Our Commitment to Transparency
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              We believe donors, partners, and community members deserve to see exactly 
-              how their support creates change.
-            </p>
-          </div>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="text-center p-6 bg-accent rounded-xl">
-              <p className="text-4xl lg:text-5xl font-serif font-bold text-primary mb-2">25</p>
-              <p className="text-muted-foreground">Housing pods (Phase 1)</p>
-            </div>
-            <div className="text-center p-6 bg-accent rounded-xl">
-              <p className="text-4xl lg:text-5xl font-serif font-bold text-primary mb-2">24/7</p>
-              <p className="text-muted-foreground">Safety Center access</p>
-            </div>
-            <div className="text-center p-6 bg-accent rounded-xl">
-              <p className="text-4xl lg:text-5xl font-serif font-bold text-primary mb-2">100%</p>
-              <p className="text-muted-foreground">Financial transparency</p>
-            </div>
-            <div className="text-center p-6 bg-accent rounded-xl">
-              <p className="text-4xl lg:text-5xl font-serif font-bold text-primary mb-2">2</p>
-              <p className="text-muted-foreground">Counties served</p>
+              <div className="border-t border-border pt-4 space-y-2">
+                <div className="flex items-start gap-2 text-sm">
+                  <Target className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                  <span className="text-muted-foreground"><span className="font-medium text-foreground">Outcome:</span> Employment and housing transition</span>
+                </div>
+                <div className="flex items-start gap-2 text-sm">
+                  <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                  <span className="text-muted-foreground"><span className="font-medium text-foreground">Purpose:</span> Achieve sustainable independence</span>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="text-center mt-10">
-            <Link to="/impact">
+          <div className="mt-8 text-center">
+            <Link to="/model">
               <Button variant="outline" size="lg">
-                View Full Impact Report
+                View Full Operational Model
                 <ArrowRight className="w-4 h-4" />
               </Button>
             </Link>
@@ -249,28 +197,87 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Development Status */}
+      <section className="py-16 lg:py-24 bg-background">
+        <div className="container-wide section-padding">
+          <div className="max-w-4xl">
+            <h2 className="text-3xl lg:text-4xl font-serif font-bold text-foreground mb-6">
+              Current Development Phase
+            </h2>
+            <p className="text-lg text-muted-foreground leading-relaxed mb-8">
+              Klear Path is in active pre-development. The following milestones define our 
+              current trajectory toward operational launch.
+            </p>
+            <div className="space-y-4">
+              {[
+                { label: "501(c)(3) determination pending", detail: "Filed January 2026" },
+                { label: "Board formation underway", detail: "Governance structure in development" },
+                { label: "Pre-development capital planning", detail: "Budget modeling and funding strategy" },
+                { label: "County alignment conversations scheduled", detail: "Bucks County stakeholder engagement" },
+                { label: "Phase 1 pilot planning", detail: "Site requirements and operational design" },
+              ].map((item, i) => (
+                <div key={i} className="flex items-start gap-4 bg-card border border-border rounded-lg p-5">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <TrendingUp className="w-4 h-4 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-foreground">{item.label}</p>
+                    <p className="text-sm text-muted-foreground">{item.detail}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Trust Signals */}
+      <section className="py-16 lg:py-20 bg-primary text-primary-foreground">
+        <div className="container-wide section-padding">
+          <div className="max-w-3xl">
+            <h2 className="text-3xl lg:text-4xl font-serif font-bold mb-6">
+              Built on Lived Experience + Structured Systems Design
+            </h2>
+            <p className="text-lg text-primary-foreground/85 leading-relaxed">
+              Designed by individuals with firsthand experience navigating system gaps, 
+              combined with structured operational planning and workforce integration strategy. 
+              This dual foundation ensures programming is both practically informed and 
+              institutionally viable.
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
-      <section className="py-16 lg:py-20 bg-secondary">
-        <div className="container-wide section-padding text-center">
-          <h2 className="text-3xl lg:text-4xl font-serif font-semibold text-foreground mb-4">
-            Ready to Make a Difference?
-          </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-            Whether you donate, volunteer, or partner with us—every contribution helps 
-            build pathways from crisis to stability for our neighbors.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/donate">
+      <section className="py-16 lg:py-24 bg-secondary">
+        <div className="container-wide section-padding">
+          <div className="max-w-3xl mx-auto text-center">
+            <h2 className="text-3xl lg:text-4xl font-serif font-bold text-foreground mb-4">
+              Next Steps
+            </h2>
+            <p className="text-lg text-muted-foreground mb-10 leading-relaxed">
+              Klear Path is seeking aligned partners—county agencies, foundations, and 
+              institutional funders—to advance structured housing infrastructure in Bucks County.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="xl">
-                <Heart className="w-5 h-5" />
-                Donate Today
+                <FileText className="w-5 h-5" />
+                Download Mission Brief
               </Button>
-            </Link>
-            <Link to="/get-involved">
-              <Button variant="outline" size="xl">
-                Get Involved
-              </Button>
-            </Link>
+              <Link to="/contact">
+                <Button variant="outline" size="xl">
+                  <MessageSquare className="w-5 h-5" />
+                  Request Strategic Partnership Meeting
+                </Button>
+              </Link>
+            </div>
+            <div className="mt-6">
+              <Link to="/get-involved" className="inline-flex items-center gap-2 text-primary font-medium hover:underline">
+                <Users className="w-4 h-4" />
+                Join the Founding 25
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
           </div>
         </div>
       </section>

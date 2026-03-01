@@ -33,7 +33,7 @@ export function Footer() {
             <p className="text-primary-foreground/60 text-xs">
               Klear Path Home, Inc.<br />
               EIN: 41-3156622<br />
-              501(c)(3) Nonprofit Organization
+              501(c)(3) Status Pending (Filed January 2026)
             </p>
           </div>
 
@@ -84,10 +84,10 @@ export function Footer() {
               <li className="flex items-center gap-2 text-sm">
                 <Mail className="w-4 h-4 text-primary-foreground/60 flex-shrink-0" />
                 <a
-                  href="mailto:info@klearpathhome.org"
+                  href="mailto:erickmckee@klearpathhome.org"
                   className="text-primary-foreground/80 hover:text-primary-foreground transition-colors"
                 >
-                  info@klearpathhome.org
+                  erickmckee@klearpathhome.org
                 </a>
               </li>
               <li className="flex items-center gap-2 text-sm">
@@ -107,7 +107,7 @@ export function Footer() {
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-primary-foreground/60">
             <p>© {new Date().getFullYear()} Klear Path Home, Inc. All rights reserved.</p>
             <p>
-              Domains: klearpathhome.org • klearpathhome.com
+              klearpathhome.org
             </p>
           </div>
         </div>
