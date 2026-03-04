@@ -17,7 +17,7 @@ const Index = () => {
               Structured Housing & Workforce Infrastructure
             </p>
             <p className="text-lg text-primary-foreground/80 mb-10 max-w-2xl leading-relaxed">
-              A federally recognized 501(c)(3) public charity focused on permanent village-based reintegration campuses in Bucks County, PA.
+              A federally recognized 501(c)(3) public charity focused on permanent village-based reintegration campuses in Bucks & Montgomery Counties, PA.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Button variant="hero" size="xl">
@@ -38,7 +38,7 @@ const Index = () => {
         <div className="border-t border-primary-foreground/15">
           <div className="container-wide section-padding py-6">
             <div className="grid sm:grid-cols-3 gap-4 text-sm text-primary-foreground/80">
-              <p>Homelessness in Bucks County has nearly doubled in five years.</p>
+              <p>Homelessness in Bucks & Montgomery Counties has nearly doubled in five years.</p>
               <p>The current system is reactive.</p>
               <p className="font-semibold text-primary-foreground">Klear Path builds structured alternatives.</p>
             </div>
@@ -54,7 +54,7 @@ const Index = () => {
               The Cost of System Fragmentation
             </h2>
             <p className="text-lg text-muted-foreground leading-relaxed mb-8">
-              Bucks County's existing homelessness response relies on disconnected emergency 
+              Bucks & Montgomery Counties' existing homelessness response relies on disconnected emergency 
               interventions. Without structured stabilization pathways, individuals cycle through 
               shelters, emergency rooms, and the criminal justice system—at significant public cost 
               and with minimal long-term outcomes.
@@ -213,7 +213,7 @@ const Index = () => {
                 { label: "501(c)(3) determination received", detail: "Federally recognized public charity" },
                 { label: "Board formation underway", detail: "Governance structure in development" },
                 { label: "Pre-development capital planning", detail: "Budget modeling and funding strategy" },
-                { label: "County alignment conversations scheduled", detail: "Bucks County stakeholder engagement" },
+                { label: "County alignment conversations scheduled", detail: "Bucks & Montgomery Counties stakeholder engagement" },
                 { label: "Phase 1 pilot planning", detail: "Site requirements and operational design" },
               ].map((item, i) => (
                 <div key={i} className="flex items-start gap-4 bg-card border border-border rounded-lg p-5">
@@ -257,7 +257,7 @@ const Index = () => {
             </h2>
             <p className="text-lg text-muted-foreground mb-10 leading-relaxed">
               Klear Path is seeking aligned partners—county agencies, foundations, and 
-              institutional funders—to advance structured housing infrastructure in Bucks County.
+              institutional funders—to advance structured housing infrastructure in Bucks & Montgomery Counties.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="xl">
