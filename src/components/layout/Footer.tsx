@@ -84,10 +84,19 @@ export function Footer() {
               <li className="flex items-center gap-2 text-sm">
                 <Mail className="w-4 h-4 text-primary-foreground/60 flex-shrink-0" />
                 <a
-                  href="mailto:erickmckee@klearpathhome.org"
+                  href="mailto:ErickMcKee@KlearPathHome.ORG"
                   className="text-primary-foreground/80 hover:text-primary-foreground transition-colors"
                 >
-                  erickmckee@klearpathhome.org
+                  ErickMcKee@KlearPathHome.ORG
+                </a>
+              </li>
+              <li className="flex items-center gap-2 text-sm">
+                <Phone className="w-4 h-4 text-primary-foreground/60 flex-shrink-0" />
+                <a
+                  href="tel:+12159867246"
+                  className="text-primary-foreground/80 hover:text-primary-foreground transition-colors"
+                >
+                  (215) 986-7246
                 </a>
               </li>
               <li className="flex items-center gap-2 text-sm">
