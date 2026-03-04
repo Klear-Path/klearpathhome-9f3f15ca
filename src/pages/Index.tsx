@@ -17,7 +17,7 @@ const Index = () => {
               Structured Housing & Workforce Infrastructure
             </p>
             <p className="text-lg text-primary-foreground/80 mb-10 max-w-2xl leading-relaxed">
-              A 501(c)(3) nonprofit designing stability-first housing solutions in Bucks County, PA.
+              A federally recognized 501(c)(3) public charity focused on permanent village-based reintegration campuses in Bucks County, PA.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Button variant="hero" size="xl">
@@ -210,7 +210,7 @@ const Index = () => {
             </p>
             <div className="space-y-4">
               {[
-                { label: "501(c)(3) determination pending", detail: "Filed January 2026" },
+                { label: "501(c)(3) determination received", detail: "Federally recognized public charity" },
                 { label: "Board formation underway", detail: "Governance structure in development" },
                 { label: "Pre-development capital planning", detail: "Budget modeling and funding strategy" },
                 { label: "County alignment conversations scheduled", detail: "Bucks County stakeholder engagement" },

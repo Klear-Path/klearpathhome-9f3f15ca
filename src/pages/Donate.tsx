@@ -92,7 +92,7 @@ const Donate = () => {
                 <Shield className="w-8 h-8 text-primary mb-3" />
                 <h3 className="font-serif font-semibold text-lg mb-2">Tax-Deductible</h3>
                 <p className="text-sm text-muted-foreground mb-3">
-                  Klear Path Home, Inc. is a registered 501(c)(3) nonprofit. Your donation is
+                  Klear Path Home, Inc. is a federally recognized 501(c)(3) public charity. Your donation is
                   tax-deductible to the extent allowed by law.
                 </p>
                 <p className="text-xs text-muted-foreground">
