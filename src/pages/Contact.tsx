@@ -146,10 +146,10 @@ const Contact = () => {
                 <Mail className="w-8 h-8 text-primary mb-3" />
                 <h3 className="font-serif font-semibold text-lg mb-2">Email</h3>
                 <a 
-                  href="mailto:info@klearpathhome.org" 
+                  href="mailto:ErickMcKee@KlearPathHome.ORG" 
                   className="text-primary hover:underline"
                 >
-                  info@klearpathhome.org
+                  ErickMcKee@KlearPathHome.ORG
                 </a>
                 <p className="text-sm text-muted-foreground mt-2">
                   For general inquiries and information
@@ -160,10 +160,16 @@ const Contact = () => {
                 <Phone className="w-8 h-8 text-primary mb-3" />
                 <h3 className="font-serif font-semibold text-lg mb-2">Phone</h3>
                 <a 
-                  href="tel:+12155551234" 
-                  className="text-primary hover:underline"
+                  href="tel:+12159867246" 
+                  className="text-primary hover:underline block"
                 >
-                  (215) 555-1234
+                  (215) 986-7246
+                </a>
+                <a 
+                  href="tel:+18444558883" 
+                  className="text-primary hover:underline block mt-1"
+                >
+                  (844) 455-8883
                 </a>
                 <p className="text-sm text-muted-foreground mt-2">
                   Monday - Friday, 9am - 5pm EST
@@ -178,7 +184,7 @@ const Contact = () => {
                   Pennsylvania
                 </p>
                 <p className="text-sm text-muted-foreground mt-2">
-                  Campus location to be announced
+                  Flagship campus location to be announced
                 </p>
               </div>
 

@@ -20,10 +20,12 @@ const Index = () => {
               A federally recognized 501(c)(3) public charity focused on permanent village-based reintegration campuses in Bucks & Montgomery Counties, PA.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button variant="hero" size="xl">
-                <FileText className="w-5 h-5" />
-                Download Mission Brief
-              </Button>
+              <a href="/klearpath_501c3.pdf" target="_blank" rel="noopener noreferrer">
+                <Button variant="hero" size="xl">
+                  <FileText className="w-5 h-5" />
+                  Download Mission Brief
+                </Button>
+              </a>
               <Link to="/contact">
                 <Button variant="hero-outline" size="xl">
                   <MessageSquare className="w-5 h-5" />
@@ -282,10 +284,12 @@ const Index = () => {
               institutional funders—to advance structured housing infrastructure in Bucks & Montgomery Counties.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="xl">
-                <FileText className="w-5 h-5" />
-                Download Mission Brief
-              </Button>
+              <a href="/klearpath_501c3.pdf" target="_blank" rel="noopener noreferrer">
+                <Button size="xl">
+                  <FileText className="w-5 h-5" />
+                  Download Mission Brief
+                </Button>
+              </a>
               <Link to="/contact">
                 <Button variant="outline" size="xl">
                   <MessageSquare className="w-5 h-5" />
