@@ -1,11 +1,53 @@
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
-import { Heart, Shield, CheckCircle, CreditCard, Calendar, Gift, Building2, ArrowRight } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { Heart, Shield, CheckCircle, CreditCard, Calendar, Gift, Building2, ArrowRight, DollarSign } from "lucide-react";
+
+const suggestedAmounts = [25, 50, 100, 250, 500, 1000];
 
 const Donate = () => {
-  const oneTimeAmounts = [25, 50, 100, 250, 500, 1000];
-  const monthlyAmounts = [10, 25, 50, 100, 250];
+  const { toast } = useToast();
+  const [searchParams] = useSearchParams();
+  const [amount, setAmount] = useState<string>("");
+  const [email, setEmail] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get("success") === "true") {
+      toast({
+        title: "Thank you for your donation!",
+        description: "Your generous gift helps build pathways from crisis to stability.",
+      });
+    }
+  }, [searchParams, toast]);
+
+  const handleDonate = async () => {
+    const numAmount = parseFloat(amount);
+    if (!numAmount || numAmount < 1) {
+      toast({ title: "Please enter an amount of at least $1.", variant: "destructive" });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-donation", {
+        body: { amount: numAmount, email: email || undefined },
+      });
+
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, "_blank");
+      }
+    } catch (err: any) {
+      toast({ title: "Something went wrong", description: err.message, variant: "destructive" });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <Layout>
@@ -18,7 +60,7 @@ const Donate = () => {
             </h1>
             <p className="text-xl text-primary-foreground/90 leading-relaxed">
               Your donation helps build pathways from crisis to stability for our neighbors in
-              Bucks and Montgomery Counties. Every dollar makes a difference.
+              Bucks & Montgomery Counties. Every dollar makes a difference.
             </p>
           </div>
         </div>
@@ -28,7 +70,7 @@ const Donate = () => {
       <section className="py-16 lg:py-24">
         <div className="container-wide section-padding">
           <div className="grid lg:grid-cols-3 gap-8">
-            {/* Zeffy Embed Placeholder */}
+            {/* Donation Form */}
             <div className="lg:col-span-2">
               <div className="bg-card rounded-2xl shadow-medium border border-border overflow-hidden">
                 <div className="bg-primary/5 px-6 py-4 border-b border-border">
@@ -36,71 +78,91 @@ const Donate = () => {
                     Make Your Donation
                   </h2>
                 </div>
-                
-                {/* Zeffy Embed Placeholder */}
-                <div className="p-8 lg:p-12">
-                  <div className="bg-secondary rounded-xl p-8 text-center border-2 border-dashed border-border min-h-[400px] flex flex-col items-center justify-center">
-                    <CreditCard className="w-16 h-16 text-muted-foreground mb-4" />
-                    <h3 className="font-serif text-xl font-semibold mb-2">Zeffy Donation Form</h3>
-                    <p className="text-muted-foreground mb-6 max-w-md">
-                      Secure donation processing will be embedded here. Zeffy charges no fees
-                      on donations—100% of your gift goes to our mission.
-                    </p>
-                    <div className="bg-accent rounded-lg p-4 text-sm text-muted-foreground">
-                      <p className="font-medium text-foreground mb-1">Embed Code Placeholder</p>
-                      <code className="text-xs">&lt;iframe src="zeffy-form-url"&gt;&lt;/iframe&gt;</code>
-                    </div>
-                  </div>
-                </div>
 
-                {/* Suggested Amounts Reference */}
-                <div className="px-8 pb-8">
-                  <div className="grid sm:grid-cols-2 gap-6">
-                    <div>
-                      <h4 className="font-semibold text-sm text-muted-foreground mb-3 flex items-center gap-2">
-                        <Gift className="w-4 h-4" /> Suggested One-Time Gifts
-                      </h4>
-                      <div className="flex flex-wrap gap-2">
-                        {oneTimeAmounts.map((amount) => (
-                          <span key={amount} className="px-3 py-1 bg-secondary rounded-full text-sm font-medium">
-                            ${amount}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-sm text-muted-foreground mb-3 flex items-center gap-2">
-                        <Calendar className="w-4 h-4" /> Suggested Monthly Gifts
-                      </h4>
-                      <div className="flex flex-wrap gap-2">
-                        {monthlyAmounts.map((amount) => (
-                          <span key={amount} className="px-3 py-1 bg-secondary rounded-full text-sm font-medium">
-                            ${amount}/mo
-                          </span>
-                        ))}
-                      </div>
+                <div className="p-8 lg:p-12 space-y-8">
+                  {/* Suggested Amounts */}
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
+                      <Gift className="w-4 h-4" /> Select an amount
+                    </p>
+                    <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+                      {suggestedAmounts.map((a) => (
+                        <button
+                          key={a}
+                          onClick={() => setAmount(String(a))}
+                          className={`px-4 py-3 rounded-lg border text-sm font-semibold transition-colors ${
+                            amount === String(a)
+                              ? "bg-primary text-primary-foreground border-primary"
+                              : "bg-secondary border-border hover:border-primary/50"
+                          }`}
+                        >
+                          ${a}
+                        </button>
+                      ))}
                     </div>
                   </div>
+
+                  {/* Custom Amount */}
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground mb-2">Or enter a custom amount</p>
+                    <div className="relative max-w-xs">
+                      <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        type="number"
+                        min="1"
+                        step="1"
+                        placeholder="0"
+                        value={amount}
+                        onChange={(e) => setAmount(e.target.value)}
+                        className="pl-8 text-lg"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Email (optional) */}
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground mb-2">Email (optional, for receipt)</p>
+                    <Input
+                      type="email"
+                      placeholder="you@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="max-w-sm"
+                    />
+                  </div>
+
+                  {/* Donate Button */}
+                  <Button
+                    size="lg"
+                    onClick={handleDonate}
+                    disabled={isLoading || !amount}
+                    className="w-full sm:w-auto text-lg px-10"
+                  >
+                    <CreditCard className="w-5 h-5" />
+                    {isLoading ? "Processing..." : `Donate${amount ? ` $${amount}` : ""}`}
+                  </Button>
+
+                  <p className="text-xs text-muted-foreground">
+                    You'll be securely redirected to Stripe to complete your donation. 100% of your gift goes to our mission.
+                  </p>
                 </div>
               </div>
             </div>
 
             {/* Sidebar */}
             <div className="space-y-6">
-              {/* Tax Info */}
               <div className="bg-accent rounded-xl p-6">
                 <Shield className="w-8 h-8 text-primary mb-3" />
                 <h3 className="font-serif font-semibold text-lg mb-2">Tax-Deductible</h3>
                 <p className="text-sm text-muted-foreground mb-3">
                   Klear Path Home, Inc. is a federally recognized 501(c)(3) public charity. Your donation is
-                  tax-deductible to the extent allowed by law.
+                  tax-deductible to the fullest extent permitted by law.
                 </p>
                 <p className="text-xs text-muted-foreground">
                   <strong>EIN:</strong> 41-3156622
                 </p>
               </div>
 
-              {/* Impact */}
               <div className="bg-card rounded-xl p-6 shadow-soft border border-border">
                 <Heart className="w-8 h-8 text-primary mb-3" />
                 <h3 className="font-serif font-semibold text-lg mb-4">Your Impact</h3>
@@ -124,7 +186,6 @@ const Donate = () => {
                 </ul>
               </div>
 
-              {/* Monthly Giving */}
               <div className="bg-primary rounded-xl p-6 text-primary-foreground">
                 <Calendar className="w-8 h-8 mb-3" />
                 <h3 className="font-serif font-semibold text-lg mb-2">Become a Monthly Giver</h3>
