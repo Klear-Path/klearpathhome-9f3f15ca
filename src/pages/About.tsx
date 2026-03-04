@@ -222,7 +222,7 @@ const About = () => {
           <div className="bg-secondary rounded-xl p-6 max-w-lg mx-auto">
             <p className="font-medium text-foreground mb-2">Klear Path Home, Inc.</p>
             <p className="text-muted-foreground text-sm mb-2">
-              A Pennsylvania 501(c)(3) nonprofit organization
+              A federally recognized 501(c)(3) public charity focused on permanent village-based reintegration campuses
             </p>
             <p className="text-muted-foreground text-sm">
               <strong>EIN:</strong> 41-3156622

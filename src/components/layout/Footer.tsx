@@ -33,7 +33,7 @@ export function Footer() {
             <p className="text-primary-foreground/60 text-xs">
               Klear Path Home, Inc.<br />
               EIN: 41-3156622<br />
-              501(c)(3) Status Pending (Filed January 2026)
+              Federally Recognized 501(c)(3) Public Charity
             </p>
           </div>
 

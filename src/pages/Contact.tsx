@@ -228,7 +228,7 @@ const Contact = () => {
               <div className="bg-card rounded-xl p-6 shadow-soft border border-border">
                 <h3 className="font-semibold mb-2">Are donations tax-deductible?</h3>
                 <p className="text-muted-foreground text-sm">
-                  Yes. Klear Path Home, Inc. is a registered 501(c)(3) nonprofit organization 
+                  Yes. Klear Path Home, Inc. is a federally recognized 501(c)(3) public charity 
                   (EIN: 41-3156622). Your donation is tax-deductible to the extent allowed by law.
                 </p>
               </div>
