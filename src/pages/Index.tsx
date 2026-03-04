@@ -248,6 +248,28 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Tax-Exempt Status */}
+      <section className="py-12 lg:py-16 bg-background">
+        <div className="container-wide section-padding">
+          <div className="max-w-2xl mx-auto text-center">
+            <h2 className="text-2xl lg:text-3xl font-serif font-bold text-foreground mb-4">
+              Tax-Exempt Status
+            </h2>
+            <p className="text-muted-foreground leading-relaxed mb-2">
+              Klear Path is an IRS-recognized 501(c)(3) public charity.
+              Donations are tax-deductible to the fullest extent permitted by law.
+            </p>
+            <p className="text-sm font-semibold text-foreground mb-6">EIN: 41-3156622</p>
+            <a href="/klearpath_501c3.pdf" target="_blank" rel="noopener noreferrer">
+              <Button variant="outline" size="lg">
+                <FileText className="w-4 h-4" />
+                Download IRS Determination Letter
+              </Button>
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-16 lg:py-24 bg-secondary">
         <div className="container-wide section-padding">
