@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
-import { Shield, Home, Briefcase, ArrowRight, FileText, MessageSquare, Users, Clock, Target, TrendingUp, CheckCircle2, Building2 } from "lucide-react";
+import { Shield, Home, Briefcase, ArrowRight, FileText, MessageSquare, Users, Clock, Target, TrendingUp, CheckCircle2, Building2, Cpu, ClipboardList, BarChart3, FileSearch } from "lucide-react";
 
 const Index = () => {
   return (
@@ -246,6 +246,71 @@ const Index = () => {
               This dual foundation ensures programming is both practically informed and 
               institutionally viable.
             </p>
+          </div>
+        </div>
+      </section>
+
+      {/* AI-Assisted Service Coordination */}
+      <section className="py-16 lg:py-24 bg-secondary">
+        <div className="container-wide section-padding">
+          <div className="max-w-4xl">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Cpu className="w-6 h-6 text-primary" />
+              </div>
+              <h2 className="text-3xl lg:text-4xl font-serif font-bold text-foreground">
+                AI-Assisted Service Coordination
+              </h2>
+            </div>
+            <p className="text-lg text-muted-foreground leading-relaxed mb-8">
+              Klear Path is developing AI-assisted tools that help staff and volunteers coordinate 
+              housing stabilization services more efficiently. These systems assist with participant 
+              intake documentation, service referrals, grant writing, and impact reporting—so our 
+              team can focus more time on direct support.
+            </p>
+            <p className="text-lg text-muted-foreground leading-relaxed mb-10">
+              By combining community partnerships with modern technology, Klear Path aims to create 
+              scalable solutions that allow small teams to serve more individuals experiencing 
+              housing instability.
+            </p>
+            <div className="grid sm:grid-cols-2 gap-6">
+              <div className="bg-card border border-border rounded-xl p-6 flex items-start gap-4">
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <ClipboardList className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <p className="font-semibold text-foreground mb-1">Intake & Documentation</p>
+                  <p className="text-sm text-muted-foreground">AI-assisted participant intake and case summary generation</p>
+                </div>
+              </div>
+              <div className="bg-card border border-border rounded-xl p-6 flex items-start gap-4">
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <ArrowRight className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <p className="font-semibold text-foreground mb-1">Service Referrals</p>
+                  <p className="text-sm text-muted-foreground">Smart matching to employment support, ID recovery, and housing resources</p>
+                </div>
+              </div>
+              <div className="bg-card border border-border rounded-xl p-6 flex items-start gap-4">
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <FileSearch className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <p className="font-semibold text-foreground mb-1">Grant Writing Support</p>
+                  <p className="text-sm text-muted-foreground">AI-powered drafting and research to accelerate funding applications</p>
+                </div>
+              </div>
+              <div className="bg-card border border-border rounded-xl p-6 flex items-start gap-4">
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <BarChart3 className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <p className="font-semibold text-foreground mb-1">Impact Reporting</p>
+                  <p className="text-sm text-muted-foreground">Automated outcome tracking and funder-ready report generation</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
