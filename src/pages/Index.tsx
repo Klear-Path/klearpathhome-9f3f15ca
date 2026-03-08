@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
-import { Shield, Home, Briefcase, ArrowRight, FileText, MessageSquare, Users, Clock, Target, TrendingUp, CheckCircle2, Building2 } from "lucide-react";
+import { Shield, Home, Briefcase, ArrowRight, FileText, MessageSquare, Users, Clock, Target, TrendingUp, CheckCircle2, Building2, Cpu, ClipboardList, BarChart3, FileSearch } from "lucide-react";
 
 const Index = () => {
   return (
