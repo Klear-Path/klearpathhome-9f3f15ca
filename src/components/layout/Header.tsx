@@ -5,10 +5,10 @@ import { Button } from "@/components/ui/button";
 
 const navigation = [
   { name: "Home", href: "/" },
-  { name: "The Model", href: "/model" },
-  { name: "Counties & Partners", href: "/partners" },
-  { name: "Impact", href: "/impact" },
+  { name: "Our Model", href: "/housing-stabilization-model" },
+  { name: "Partners", href: "/partners" },
   { name: "Get Involved", href: "/get-involved" },
+  { name: "Volunteer", href: "/volunteer" },
   { name: "About", href: "/about" },
   { name: "Contact", href: "/contact" },
 ];
@@ -21,7 +21,6 @@ export function Header() {
     <header className="sticky top-0 z-50 bg-card/95 backdrop-blur-sm border-b border-border">
       <nav className="container-wide section-padding" aria-label="Main navigation">
         <div className="flex h-16 items-center justify-between lg:h-20">
-          {/* Logo */}
           <Link to="/" className="flex items-center gap-2" aria-label="Klear Path Home">
             <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
               <span className="text-primary-foreground font-serif font-bold text-xl">K</span>
@@ -29,7 +28,6 @@ export function Header() {
             <span className="font-serif font-semibold text-xl text-foreground">Klear Path</span>
           </Link>
 
-          {/* Desktop Navigation */}
           <div className="hidden lg:flex lg:items-center lg:gap-1">
             {navigation.map((item) => (
               <Link
@@ -51,7 +49,6 @@ export function Header() {
             </Link>
           </div>
 
-          {/* Mobile menu button */}
           <button
             type="button"
             className="lg:hidden p-2 rounded-md text-foreground"
@@ -60,15 +57,10 @@ export function Header() {
             aria-controls="mobile-menu"
           >
             <span className="sr-only">Toggle menu</span>
-            {mobileMenuOpen ? (
-              <X className="h-6 w-6" aria-hidden="true" />
-            ) : (
-              <Menu className="h-6 w-6" aria-hidden="true" />
-            )}
+            {mobileMenuOpen ? <X className="h-6 w-6" aria-hidden="true" /> : <Menu className="h-6 w-6" aria-hidden="true" />}
           </button>
         </div>
 
-        {/* Mobile Navigation */}
         {mobileMenuOpen && (
           <div id="mobile-menu" className="lg:hidden pb-4 animate-fade-in">
             <div className="flex flex-col gap-1">
