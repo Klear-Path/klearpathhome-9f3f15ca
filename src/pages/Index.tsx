@@ -1,11 +1,36 @@
 import { Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
-import { Shield, Home, Briefcase, ArrowRight, FileText, MessageSquare, Users, Clock, Target, TrendingUp, CheckCircle2, Building2, Cpu, ClipboardList, BarChart3, FileSearch } from "lucide-react";
+import { Shield, Home, Briefcase, ArrowRight, FileText, MessageSquare, Users, Clock, Target, TrendingUp, CheckCircle2, Building2, Cpu, ClipboardList, BarChart3, FileSearch, Heart } from "lucide-react";
 
 const Index = () => {
   return (
     <Layout>
+      <Helmet>
+        <title>Klear Path | Housing Stabilization Programs in Bucks & Montgomery Counties</title>
+        <meta name="description" content="Klear Path is a 501(c)(3) nonprofit building scalable housing stabilization programs and homelessness solutions in Bucks and Montgomery Counties, Pennsylvania." />
+        <meta name="keywords" content="housing stabilization programs, homelessness solutions nonprofit, community housing partnerships, homelessness prevention initiatives, innovative housing programs, housing stability services" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "NonprofitOrganization",
+          "name": "Klear Path Home, Inc.",
+          "url": "https://klearpathhome.org",
+          "description": "A 501(c)(3) nonprofit building scalable housing stabilization programs and homelessness solutions in Bucks and Montgomery Counties, Pennsylvania.",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "410 Hopkins Ct",
+            "addressLocality": "North Wales",
+            "addressRegion": "PA",
+            "postalCode": "19454"
+          },
+          "telephone": "+1-215-986-7246",
+          "email": "Erickmckee@gmail.com",
+          "taxID": "41-3156622",
+          "nonprofitStatus": "501c3"
+        })}</script>
+      </Helmet>
+
       {/* Hero Section */}
       <section className="relative bg-primary text-primary-foreground">
         <div className="container-wide section-padding py-20 lg:py-28">
@@ -14,22 +39,23 @@ const Index = () => {
               Klear Path
             </h1>
             <p className="text-xl sm:text-2xl font-serif text-primary-foreground/90 mb-6">
-              Structured Housing & Workforce Infrastructure
+              Housing Stabilization Through Coordinated Community Solutions
             </p>
             <p className="text-lg text-primary-foreground/80 mb-10 max-w-2xl leading-relaxed">
-              A federally recognized 501(c)(3) public charity focused on permanent village-based reintegration campuses in Bucks & Montgomery Counties, PA.
+              A federally recognized 501(c)(3) public charity building innovative housing programs
+              and homelessness prevention initiatives in Bucks & Montgomery Counties, PA.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <a href="/klearpath_501c3.pdf" target="_blank" rel="noopener noreferrer">
+              <Link to="/housing-stabilization-model">
                 <Button variant="hero" size="xl">
-                  <FileText className="w-5 h-5" />
-                  Download Mission Brief
+                  <ArrowRight className="w-5 h-5" />
+                  Learn About Our Model
                 </Button>
-              </a>
+              </Link>
               <Link to="/contact">
                 <Button variant="hero-outline" size="xl">
                   <MessageSquare className="w-5 h-5" />
-                  Request Strategic Conversation
+                  Request a Conversation
                 </Button>
               </Link>
             </div>
@@ -41,8 +67,8 @@ const Index = () => {
           <div className="container-wide section-padding py-6">
             <div className="grid sm:grid-cols-3 gap-4 text-sm text-primary-foreground/80">
               <p>Homelessness in Bucks & Montgomery Counties has nearly doubled in five years.</p>
-              <p>The current system is reactive.</p>
-              <p className="font-semibold text-primary-foreground">Klear Path builds structured alternatives.</p>
+              <p>The current system is reactive—communities need coordinated housing stability services.</p>
+              <p className="font-semibold text-primary-foreground">Klear Path builds scalable, structured alternatives.</p>
             </div>
           </div>
         </div>
@@ -56,9 +82,9 @@ const Index = () => {
               The Cost of System Fragmentation
             </h2>
             <p className="text-lg text-muted-foreground leading-relaxed mb-8">
-              Bucks & Montgomery Counties' existing homelessness response relies on disconnected emergency 
-              interventions. Without structured stabilization pathways, individuals cycle through 
-              shelters, emergency rooms, and the criminal justice system—at significant public cost 
+              Bucks & Montgomery Counties' existing homelessness response relies on disconnected emergency
+              interventions. Without coordinated housing stabilization programs, individuals cycle through
+              shelters, emergency rooms, and the criminal justice system—at significant public cost
               and with minimal long-term outcomes.
             </p>
             <div className="grid sm:grid-cols-2 gap-6">
@@ -88,10 +114,10 @@ const Index = () => {
         <div className="container-wide section-padding">
           <div className="mb-12">
             <h2 className="text-3xl lg:text-4xl font-serif font-bold text-foreground mb-4">
-              Phased Stabilization Model
+              Phased Housing Stabilization Model
             </h2>
             <p className="text-lg text-muted-foreground max-w-3xl">
-              A structured, outcome-oriented framework that moves individuals from crisis 
+              A structured, outcome-oriented framework that moves individuals from crisis
               to independence through defined phases with clear milestones.
             </p>
           </div>
@@ -135,7 +161,7 @@ const Index = () => {
                 </div>
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-wider text-primary">Phase 2</p>
-                  <h3 className="text-lg font-serif font-semibold text-foreground">Structured Pod Residency</h3>
+                  <h3 className="text-lg font-serif font-semibold text-foreground">Structured Residency</h3>
                 </div>
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
@@ -189,9 +215,9 @@ const Index = () => {
           </div>
 
           <div className="mt-8 text-center">
-            <Link to="/model">
+            <Link to="/housing-stabilization-model">
               <Button variant="outline" size="lg">
-                View Full Operational Model
+                View Full Housing Stabilization Model
                 <ArrowRight className="w-4 h-4" />
               </Button>
             </Link>
@@ -207,7 +233,7 @@ const Index = () => {
               Current Development Phase
             </h2>
             <p className="text-lg text-muted-foreground leading-relaxed mb-8">
-              Klear Path is in active pre-development. The following milestones define our 
+              Klear Path is in active pre-development. The following milestones define our
               current trajectory toward operational launch.
             </p>
             <div className="space-y-4">
@@ -241,9 +267,9 @@ const Index = () => {
               Built on Lived Experience + Structured Systems Design
             </h2>
             <p className="text-lg text-primary-foreground/85 leading-relaxed">
-              Designed by individuals with firsthand experience navigating system gaps, 
-              combined with structured operational planning and workforce integration strategy. 
-              This dual foundation ensures programming is both practically informed and 
+              Designed by individuals with firsthand experience navigating system gaps,
+              combined with structured operational planning and workforce integration strategy.
+              This dual foundation ensures programming is both practically informed and
               institutionally viable.
             </p>
           </div>
@@ -262,16 +288,16 @@ const Index = () => {
                 AI-Assisted Service Coordination
               </h2>
             </div>
-            <p className="text-lg text-muted-foreground leading-relaxed mb-8">
-              Klear Path is developing AI-assisted tools that help staff and volunteers coordinate 
-              housing stabilization services more efficiently. These systems assist with participant 
-              intake documentation, service referrals, grant writing, and impact reporting—so our 
-              team can focus more time on direct support.
+            <p className="text-lg text-muted-foreground leading-relaxed mb-6">
+              Klear Path is developing AI-assisted tools that help staff and volunteers coordinate
+              housing stabilization services more efficiently. These tools support participant intake
+              documentation, service referrals, grant writing, and program reporting—so our
+              team can spend more time helping individuals directly.
             </p>
             <p className="text-lg text-muted-foreground leading-relaxed mb-10">
-              By combining community partnerships with modern technology, Klear Path aims to create 
-              scalable solutions that allow small teams to serve more individuals experiencing 
-              housing instability.
+              This approach allows small nonprofit teams to expand their impact while maintaining
+              high-quality support. By combining community partnerships with modern technology,
+              Klear Path aims to create scalable solutions for communities addressing housing instability.
             </p>
             <div className="grid sm:grid-cols-2 gap-6">
               <div className="bg-card border border-border rounded-xl p-6 flex items-start gap-4">
@@ -345,27 +371,31 @@ const Index = () => {
               Next Steps
             </h2>
             <p className="text-lg text-muted-foreground mb-10 leading-relaxed">
-              Klear Path is seeking aligned partners—county agencies, foundations, and 
-              institutional funders—to advance structured housing infrastructure in Bucks & Montgomery Counties.
+              Klear Path is seeking aligned partners—county agencies, foundations, and
+              institutional funders—to advance housing stabilization programs in Bucks & Montgomery Counties.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a href="/klearpath_501c3.pdf" target="_blank" rel="noopener noreferrer">
+              <Link to="/donate">
                 <Button size="xl">
-                  <FileText className="w-5 h-5" />
-                  Download Mission Brief
+                  <Heart className="w-5 h-5" />
+                  Support Our Mission
                 </Button>
-              </a>
-              <Link to="/contact">
+              </Link>
+              <Link to="/partners">
                 <Button variant="outline" size="xl">
-                  <MessageSquare className="w-5 h-5" />
-                  Request Strategic Partnership Meeting
+                  <Building2 className="w-5 h-5" />
+                  Become a Partner
                 </Button>
               </Link>
             </div>
-            <div className="mt-6">
-              <Link to="/get-involved" className="inline-flex items-center gap-2 text-primary font-medium hover:underline">
+            <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-center">
+              <a href="/KlearPath_Partnership_Overview.pdf" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-primary font-medium hover:underline">
+                <FileText className="w-4 h-4" />
+                Download Partnership Overview
+              </a>
+              <Link to="/volunteer" className="inline-flex items-center gap-2 text-primary font-medium hover:underline">
                 <Users className="w-4 h-4" />
-                Join the Founding 25
+                Volunteer With Us
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </div>

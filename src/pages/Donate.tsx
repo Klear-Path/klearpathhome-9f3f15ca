@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Heart, Shield, CheckCircle, CreditCard, Calendar, Gift, Building2, ArrowRight, DollarSign } from "lucide-react";
+import { Heart, Shield, CheckCircle, CreditCard, Gift, ArrowRight, DollarSign, Handshake } from "lucide-react";
 
 const suggestedAmounts = [25, 50, 100, 250, 500, 1000];
 
@@ -31,17 +32,13 @@ const Donate = () => {
       toast({ title: "Please enter an amount of at least $1.", variant: "destructive" });
       return;
     }
-
     setIsLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("create-donation", {
         body: { amount: numAmount, email: email || undefined },
       });
-
       if (error) throw error;
-      if (data?.url) {
-        window.open(data.url, "_blank");
-      }
+      if (data?.url) window.open(data.url, "_blank");
     } catch (err: any) {
       toast({ title: "Something went wrong", description: err.message, variant: "destructive" });
     } finally {
@@ -51,26 +48,32 @@ const Donate = () => {
 
   return (
     <Layout>
+      <Helmet>
+        <title>Donate | Support Housing Stabilization | Klear Path</title>
+        <meta name="description" content="Support Klear Path's housing stabilization programs. Your donation helps expand coordinated community support for individuals experiencing homelessness in Bucks and Montgomery Counties." />
+        <meta name="keywords" content="donate homelessness, housing stabilization programs, homelessness solutions nonprofit, homelessness prevention initiatives" />
+      </Helmet>
+
       {/* Hero */}
       <section className="py-16 lg:py-24 bg-primary text-primary-foreground">
         <div className="container-wide section-padding">
           <div className="max-w-3xl">
             <h1 className="text-4xl lg:text-5xl font-serif font-bold mb-6">
-              Support Our Mission
+              Support Housing Stabilization
             </h1>
             <p className="text-xl text-primary-foreground/90 leading-relaxed">
-              Your donation helps build pathways from crisis to stability for our neighbors in
-              Bucks & Montgomery Counties. Every dollar makes a difference.
+              Your donation helps expand housing stabilization initiatives and coordinated community
+              support for individuals experiencing homelessness in Bucks & Montgomery Counties.
+              Every dollar strengthens pathways from crisis to stability.
             </p>
           </div>
         </div>
       </section>
 
-      {/* Donation Section */}
+      {/* Donation Form */}
       <section className="py-16 lg:py-24">
         <div className="container-wide section-padding">
           <div className="grid lg:grid-cols-3 gap-8">
-            {/* Donation Form */}
             <div className="lg:col-span-2">
               <div className="bg-card rounded-2xl shadow-medium border border-border overflow-hidden">
                 <div className="bg-primary/5 px-6 py-4 border-b border-border">
@@ -78,9 +81,7 @@ const Donate = () => {
                     Make Your Donation
                   </h2>
                 </div>
-
                 <div className="p-8 lg:p-12 space-y-8">
-                  {/* Suggested Amounts */}
                   <div>
                     <p className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
                       <Gift className="w-4 h-4" /> Select an amount
@@ -101,47 +102,21 @@ const Donate = () => {
                       ))}
                     </div>
                   </div>
-
-                  {/* Custom Amount */}
                   <div>
                     <p className="text-sm font-medium text-muted-foreground mb-2">Or enter a custom amount</p>
                     <div className="relative max-w-xs">
                       <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input
-                        type="number"
-                        min="1"
-                        step="1"
-                        placeholder="0"
-                        value={amount}
-                        onChange={(e) => setAmount(e.target.value)}
-                        className="pl-8 text-lg"
-                      />
+                      <Input type="number" min="1" step="1" placeholder="0" value={amount} onChange={(e) => setAmount(e.target.value)} className="pl-8 text-lg" />
                     </div>
                   </div>
-
-                  {/* Email (optional) */}
                   <div>
                     <p className="text-sm font-medium text-muted-foreground mb-2">Email (optional, for receipt)</p>
-                    <Input
-                      type="email"
-                      placeholder="you@example.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="max-w-sm"
-                    />
+                    <Input type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} className="max-w-sm" />
                   </div>
-
-                  {/* Donate Button */}
-                  <Button
-                    size="lg"
-                    onClick={handleDonate}
-                    disabled={isLoading || !amount}
-                    className="w-full sm:w-auto text-lg px-10"
-                  >
+                  <Button size="lg" onClick={handleDonate} disabled={isLoading || !amount} className="w-full sm:w-auto text-lg px-10">
                     <CreditCard className="w-5 h-5" />
                     {isLoading ? "Processing..." : `Donate${amount ? ` $${amount}` : ""}`}
                   </Button>
-
                   <p className="text-xs text-muted-foreground">
                     You'll be securely redirected to Stripe to complete your donation. 100% of your gift goes to our mission.
                   </p>
@@ -158,9 +133,7 @@ const Donate = () => {
                   Klear Path Home, Inc. is a federally recognized 501(c)(3) public charity. Your donation is
                   tax-deductible to the fullest extent permitted by law.
                 </p>
-                <p className="text-xs text-muted-foreground">
-                  <strong>EIN:</strong> 41-3156622
-                </p>
+                <p className="text-xs text-muted-foreground"><strong>EIN:</strong> 41-3156622</p>
               </div>
 
               <div className="bg-card rounded-xl p-6 shadow-soft border border-border">
@@ -169,15 +142,15 @@ const Donate = () => {
                 <ul className="space-y-3">
                   <li className="flex items-start gap-2 text-sm">
                     <CheckCircle className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span><strong>$25</strong> — Provides a week of hot meals at the Safety Center</span>
+                    <span><strong>$25</strong> — Provides essential supplies for program participants</span>
                   </li>
                   <li className="flex items-start gap-2 text-sm">
                     <CheckCircle className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span><strong>$100</strong> — Supplies job training materials for one resident</span>
+                    <span><strong>$100</strong> — Supports job training materials and workforce development</span>
                   </li>
                   <li className="flex items-start gap-2 text-sm">
                     <CheckCircle className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span><strong>$250</strong> — Covers one month of housing support services</span>
+                    <span><strong>$250</strong> — Covers one month of housing stabilization support</span>
                   </li>
                   <li className="flex items-start gap-2 text-sm">
                     <CheckCircle className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
@@ -185,115 +158,38 @@ const Donate = () => {
                   </li>
                 </ul>
               </div>
-
-              <div className="bg-primary rounded-xl p-6 text-primary-foreground">
-                <Calendar className="w-8 h-8 mb-3" />
-                <h3 className="font-serif font-semibold text-lg mb-2">Become a Monthly Giver</h3>
-                <p className="text-sm text-primary-foreground/90">
-                  Monthly donors provide sustainable support that helps us plan and grow. Join
-                  our community of regular givers.
-                </p>
-              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Other Ways to Give */}
-      <section className="py-16 lg:py-24 bg-secondary">
+      {/* CTAs */}
+      <section className="py-16 lg:py-20 bg-secondary">
         <div className="container-wide section-padding">
-          <div className="text-center mb-12">
+          <div className="text-center mb-10">
             <h2 className="text-3xl lg:text-4xl font-serif font-semibold text-foreground mb-4">
-              Other Ways to Give
+              Other Ways to Support
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Beyond online donations, there are many ways to support our mission.
+              Beyond financial donations, there are many ways to help build community housing partnerships.
             </p>
           </div>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-card rounded-xl p-6 shadow-soft border border-border">
-              <h3 className="font-serif font-semibold mb-2">Mail a Check</h3>
-              <p className="text-sm text-muted-foreground mb-3">
-                Make checks payable to "Klear Path Home, Inc." and mail to our office.
-              </p>
-              <Link to="/contact" className="text-primary text-sm font-medium hover:underline">
-                Get mailing address →
-              </Link>
-            </div>
-            
-            <div className="bg-card rounded-xl p-6 shadow-soft border border-border">
-              <h3 className="font-serif font-semibold mb-2">Donor-Advised Fund</h3>
-              <p className="text-sm text-muted-foreground mb-3">
-                Recommend a grant from your DAF to Klear Path Home, Inc. (EIN: 41-3156622).
-              </p>
-            </div>
-            
-            <div className="bg-card rounded-xl p-6 shadow-soft border border-border">
-              <h3 className="font-serif font-semibold mb-2">Stock Donation</h3>
-              <p className="text-sm text-muted-foreground mb-3">
-                Donate appreciated securities for potential tax benefits.
-              </p>
-              <Link to="/contact" className="text-primary text-sm font-medium hover:underline">
-                Contact us for details →
-              </Link>
-            </div>
-            
-            <div className="bg-card rounded-xl p-6 shadow-soft border border-border">
-              <h3 className="font-serif font-semibold mb-2">Planned Giving</h3>
-              <p className="text-sm text-muted-foreground mb-3">
-                Include Klear Path in your estate planning to leave a lasting legacy.
-              </p>
-              <Link to="/contact" className="text-primary text-sm font-medium hover:underline">
-                Learn more →
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Corporate Giving */}
-      <section className="py-16 lg:py-20">
-        <div className="container-wide section-padding">
-          <div className="bg-card rounded-2xl p-8 lg:p-12 shadow-medium border border-border grid lg:grid-cols-2 gap-8 items-center">
-            <div>
-              <Building2 className="w-12 h-12 text-primary mb-4" />
-              <h2 className="text-3xl font-serif font-semibold text-foreground mb-4">
-                Corporate & Foundation Giving
-              </h2>
-              <p className="text-muted-foreground mb-6">
-                Businesses and foundations can make transformative gifts through grants,
-                matching programs, and sponsorships. We offer naming opportunities and
-                recognition for major donors.
-              </p>
-              <Link to="/contact">
-                <Button size="lg">
-                  Discuss a Partnership
-                  <ArrowRight className="w-4 h-4" />
-                </Button>
-              </Link>
-            </div>
-            <div className="bg-accent rounded-xl p-6">
-              <h3 className="font-serif font-semibold text-lg mb-4">Partnership Benefits</h3>
-              <ul className="space-y-2">
-                <li className="flex items-start gap-2 text-sm">
-                  <CheckCircle className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                  <span>Recognition in annual reports and materials</span>
-                </li>
-                <li className="flex items-start gap-2 text-sm">
-                  <CheckCircle className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                  <span>Naming opportunities for major gifts</span>
-                </li>
-                <li className="flex items-start gap-2 text-sm">
-                  <CheckCircle className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                  <span>Employee engagement opportunities</span>
-                </li>
-                <li className="flex items-start gap-2 text-sm">
-                  <CheckCircle className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                  <span>Customized impact reporting</span>
-                </li>
-              </ul>
-            </div>
+          <div className="grid sm:grid-cols-3 gap-6 max-w-4xl mx-auto">
+            <Link to="/partners" className="bg-card rounded-xl p-6 shadow-soft border border-border text-center hover:shadow-medium transition-shadow">
+              <Handshake className="w-10 h-10 text-primary mx-auto mb-3" />
+              <h3 className="font-serif font-semibold text-lg mb-2">Partner With Us</h3>
+              <p className="text-sm text-muted-foreground">Explore collaboration opportunities for foundations, businesses, and organizations.</p>
+            </Link>
+            <Link to="/housing-stabilization-model" className="bg-card rounded-xl p-6 shadow-soft border border-border text-center hover:shadow-medium transition-shadow">
+              <ArrowRight className="w-10 h-10 text-primary mx-auto mb-3" />
+              <h3 className="font-serif font-semibold text-lg mb-2">Learn About the Model</h3>
+              <p className="text-sm text-muted-foreground">Understand our scalable approach to housing stabilization and service coordination.</p>
+            </Link>
+            <Link to="/volunteer" className="bg-card rounded-xl p-6 shadow-soft border border-border text-center hover:shadow-medium transition-shadow">
+              <Heart className="w-10 h-10 text-primary mx-auto mb-3" />
+              <h3 className="font-serif font-semibold text-lg mb-2">Volunteer</h3>
+              <p className="text-sm text-muted-foreground">Give your time and skills to support housing stabilization initiatives.</p>
+            </Link>
           </div>
         </div>
       </section>

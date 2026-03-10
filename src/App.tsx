@@ -12,6 +12,8 @@ import GetInvolved from "./pages/GetInvolved";
 import Donate from "./pages/Donate";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
+import Volunteer from "./pages/Volunteer";
+import HousingStabilizationModel from "./pages/HousingStabilizationModel";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -21,9 +23,9 @@ const App = () => (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Helmet>
-          <title>Klear Path | Building Pathways from Crisis to Stability</title>
-          <meta name="description" content="Klear Path is building Pennsylvania's first integrated housing, safety, and workforce campus for community members experiencing homelessness in Bucks and Montgomery Counties." />
-          <meta name="keywords" content="homeless services, Bucks County, Montgomery County, Pennsylvania, transitional housing, workforce development, nonprofit" />
+          <title>Klear Path | Housing Stabilization Programs | Bucks & Montgomery Counties</title>
+          <meta name="description" content="Klear Path is a 501(c)(3) nonprofit building scalable housing stabilization programs and homelessness solutions through coordinated community partnerships in Bucks and Montgomery Counties, PA." />
+          <meta name="keywords" content="housing stabilization programs, homelessness solutions nonprofit, community housing partnerships, homelessness prevention initiatives, innovative housing programs, housing stability services" />
         </Helmet>
         <Toaster />
         <Sonner />
@@ -31,10 +33,12 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/model" element={<TheModel />} />
+            <Route path="/housing-stabilization-model" element={<HousingStabilizationModel />} />
             <Route path="/partners" element={<Partners />} />
             <Route path="/impact" element={<Impact />} />
             <Route path="/get-involved" element={<GetInvolved />} />
             <Route path="/donate" element={<Donate />} />
+            <Route path="/volunteer" element={<Volunteer />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="*" element={<NotFound />} />
