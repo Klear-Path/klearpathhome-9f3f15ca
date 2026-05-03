@@ -6,9 +6,9 @@ import { Button } from "@/components/ui/button";
 const navigation = [
   { name: "Home", href: "/" },
   { name: "Our Model", href: "/housing-stabilization-model" },
-  { name: "Partners", href: "/partners" },
-  { name: "Get Involved", href: "/get-involved" },
-  { name: "Volunteer", href: "/volunteer" },
+  { name: "For Counties", href: "/for-counties" },
+  { name: "Land Partnerships", href: "/land-partnerships" },
+  { name: "Fund a Pilot", href: "/fund-a-pilot" },
   { name: "About", href: "/about" },
   { name: "Contact", href: "/contact" },
 ];

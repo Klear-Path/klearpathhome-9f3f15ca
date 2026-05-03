@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Mail, Phone, MapPin, Clock, Send } from "lucide-react";
 
@@ -13,6 +14,7 @@ const Contact = () => {
     name: "",
     email: "",
     phone: "",
+    inquiryType: "",
     subject: "",
     message: ""
   });
@@ -34,6 +36,7 @@ const Contact = () => {
       name: "",
       email: "",
       phone: "",
+      inquiryType: "",
       subject: "",
       message: ""
     });
@@ -103,14 +106,23 @@ const Contact = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="subject">Subject *</Label>
-                      <Input
-                        id="subject"
-                        required
-                        value={formData.subject}
-                        onChange={(e) => setFormData(prev => ({ ...prev, subject: e.target.value }))}
-                        placeholder="What is this regarding?"
-                      />
+                      <Label htmlFor="inquiryType">I'm reaching out because *</Label>
+                      <Select
+                        value={formData.inquiryType}
+                        onValueChange={(v) => setFormData(prev => ({ ...prev, inquiryType: v }))}
+                      >
+                        <SelectTrigger id="inquiryType">
+                          <SelectValue placeholder="Select an option" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="land">I want to donate land/property</SelectItem>
+                          <SelectItem value="fund">I want to fund a pilot</SelectItem>
+                          <SelectItem value="county">I represent a county/municipality</SelectItem>
+                          <SelectItem value="partner">I want to partner</SelectItem>
+                          <SelectItem value="help">I need help</SelectItem>
+                          <SelectItem value="general">General inquiry</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
 

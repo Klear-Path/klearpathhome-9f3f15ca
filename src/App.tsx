@@ -14,6 +14,9 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Volunteer from "./pages/Volunteer";
 import HousingStabilizationModel from "./pages/HousingStabilizationModel";
+import ForCounties from "./pages/ForCounties";
+import LandPartnerships from "./pages/LandPartnerships";
+import FundAPilot from "./pages/FundAPilot";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,9 +26,9 @@ const App = () => (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Helmet>
-          <title>Klear Path | Housing Stabilization Programs | Bucks & Montgomery Counties</title>
-          <meta name="description" content="Klear Path is a 501(c)(3) nonprofit building scalable housing stabilization programs and homelessness solutions through coordinated community partnerships in Bucks and Montgomery Counties, PA." />
-          <meta name="keywords" content="housing stabilization programs, homelessness solutions nonprofit, community housing partnerships, homelessness prevention initiatives, innovative housing programs, housing stability services" />
+          <title>Klear Path | Workforce-Driven Housing Stability</title>
+          <meta name="description" content="Klear Path partners with counties, landowners, funders, and workforce organizations to build scalable housing stability and employment outcomes in Bucks & Montgomery Counties, PA." />
+          <meta name="keywords" content="workforce housing, housing stability programs, county housing partnerships, land donation nonprofit, pilot funding, homelessness prevention" />
         </Helmet>
         <Toaster />
         <Sonner />
@@ -35,6 +38,9 @@ const App = () => (
             <Route path="/model" element={<TheModel />} />
             <Route path="/housing-stabilization-model" element={<HousingStabilizationModel />} />
             <Route path="/partners" element={<Partners />} />
+            <Route path="/for-counties" element={<ForCounties />} />
+            <Route path="/land-partnerships" element={<LandPartnerships />} />
+            <Route path="/fund-a-pilot" element={<FundAPilot />} />
             <Route path="/impact" element={<Impact />} />
             <Route path="/get-involved" element={<GetInvolved />} />
             <Route path="/donate" element={<Donate />} />

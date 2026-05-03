@@ -3,16 +3,16 @@ import { Mail, Phone, MapPin } from "lucide-react";
 
 const quickLinks = [
   { name: "Our Model", href: "/housing-stabilization-model" },
-  { name: "Partners", href: "/partners" },
-  { name: "Get Involved", href: "/get-involved" },
-  { name: "Volunteer", href: "/volunteer" },
+  { name: "For Counties", href: "/for-counties" },
+  { name: "Land Partnerships", href: "/land-partnerships" },
+  { name: "Fund a Pilot", href: "/fund-a-pilot" },
 ];
 
 const orgLinks = [
   { name: "About Us", href: "/about" },
   { name: "Contact", href: "/contact" },
   { name: "Donate", href: "/donate" },
-  { name: "Impact", href: "/impact" },
+  { name: "Partners", href: "/partners" },
 ];
 
 export function Footer() {
@@ -28,8 +28,8 @@ export function Footer() {
               <span className="font-serif font-semibold text-xl">Klear Path</span>
             </Link>
             <p className="text-primary-foreground/80 text-sm leading-relaxed mb-4">
-              Building scalable housing stabilization programs and community housing partnerships
-              in Bucks and Montgomery Counties, Pennsylvania.
+              A 501(c)(3) nonprofit building workforce-driven housing stability programs across
+              Montgomery County, Bucks County, and the Pottstown regional service area.
             </p>
             <p className="text-primary-foreground/60 text-xs">
               Klear Path Home, Inc.<br />
