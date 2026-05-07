@@ -24,6 +24,39 @@ const About = () => {
       {/* Mission & Vision */}
       <section className="py-16 lg:py-24">
         <div className="container-wide section-padding">
+          <div className="max-w-4xl mx-auto mb-16 space-y-6">
+            <h2 className="text-3xl lg:text-4xl font-serif font-semibold text-foreground">
+              Who We Are
+            </h2>
+            <p className="text-lg text-muted-foreground leading-relaxed">
+              Klear Path is a nonprofit organization dedicated to helping individuals overcome
+              homelessness, instability, and life-altering hardship through advocacy, housing
+              support, resource navigation, and long-term recovery initiatives. From the moment
+              someone walks through our doors, they are treated as "homeless no more" — because
+              we believe real change begins with dignity, stability, accountability, and belonging.
+            </p>
+            <p className="text-lg text-muted-foreground leading-relaxed">
+              Our vision goes beyond temporary shelter. Klear Path is designed around sustainable
+              recovery models that include transitional housing pod communities, individualized
+              support systems, life-skills development, resource coordination, mentorship, and
+              incentive-based progress programs that reward personal growth, responsibility, and
+              forward movement. We aim to help individuals rebuild confidence, independence, and
+              purpose while creating a real pathway back into society.
+            </p>
+            <p className="text-lg text-muted-foreground leading-relaxed">
+              What makes Klear Path uniquely different is that it was built from firsthand lived
+              experience, not theory. We understand the systemic gaps, emotional toll, and
+              practical barriers people face because we have lived them ourselves. Instead of
+              offering temporary fixes or one-size-fits-all solutions, we focus on
+              relationship-driven support, real-world problem solving, and creating environments
+              where people feel seen, valued, and empowered to reclaim their lives.
+            </p>
+            <p className="text-xl font-serif font-semibold text-primary leading-relaxed border-l-4 border-primary pl-6">
+              Klear Path was born from the understanding that a temporary solution will never
+              resolve a permanent problem.
+            </p>
+          </div>
+
           <div className="grid lg:grid-cols-2 gap-12">
             <div className="bg-card rounded-xl p-8 shadow-soft border border-border">
               <h2 className="font-serif text-2xl font-semibold mb-4 text-foreground">Our Mission</h2>
