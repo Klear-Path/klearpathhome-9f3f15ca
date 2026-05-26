@@ -28,6 +28,13 @@ const About = () => {
             <h2 className="text-3xl lg:text-4xl font-serif font-semibold text-foreground">
               Who We Are
             </h2>
+            <p className="text-base text-muted-foreground leading-relaxed">
+              Klear Path Home, Inc. is a community-based 501(c)(3) public charity (EIN
+              41-3156622) headquartered at 410 Hopkins Ct, North Wales, PA, serving Bucks and
+              Montgomery Counties and the surrounding Greater Philadelphia region. We exist to
+              close the operational gap between emergency response and permanent stability for
+              neighbors experiencing homelessness, housing instability, and long-term hardship.
+            </p>
             <p className="text-lg text-muted-foreground leading-relaxed">
               Klear Path is a nonprofit organization dedicated to helping individuals overcome
               homelessness, instability, and life-altering hardship through advocacy, housing
@@ -54,6 +61,52 @@ const About = () => {
             <p className="text-xl font-serif font-semibold text-primary leading-relaxed border-l-4 border-primary pl-6">
               Klear Path was born from the understanding that a temporary solution will never
               resolve a permanent problem.
+            </p>
+
+            <h3 className="text-2xl font-serif font-semibold text-foreground pt-8">
+              Our Charitable Activities &amp; Community Impact
+            </h3>
+            <p className="text-base text-muted-foreground leading-relaxed">
+              Klear Path's day-to-day charitable activities fall into four interlocking program
+              areas, each designed to remove a specific barrier that keeps a person cycling
+              through crisis systems:
+            </p>
+            <ul className="space-y-3 text-base text-muted-foreground leading-relaxed list-disc pl-6">
+              <li>
+                <strong className="text-foreground">Direct Housing Stabilization.</strong> We
+                operate and coordinate transitional housing pods, safe-stay placements, and
+                wrap-around case management so neighbors have a stable address from which to
+                rebuild employment, recovery, and family reunification.
+              </li>
+              <li>
+                <strong className="text-foreground">Workforce &amp; Skills Development.</strong>{" "}
+                Through our employer-facing partnerships, residents access job-readiness
+                coaching, certifications in fields like solar, weatherization, and skilled
+                trades, plus placement support with retention follow-up at 30, 90, and 180 days.
+              </li>
+              <li>
+                <strong className="text-foreground">Resource Navigation.</strong> We help
+                participants recover lost identification, enroll in benefits, secure behavioral
+                health and recovery supports, restore family connections, and resolve the
+                administrative barriers that quietly block exits from homelessness.
+              </li>
+              <li>
+                <strong className="text-foreground">Community Education &amp; Food
+                Recovery.</strong> We mobilize volunteers, faith communities, civic groups, and
+                local businesses to recover surplus food, distribute essentials, and replace
+                stigmatizing narratives about homelessness with evidence-based community
+                conversations.
+              </li>
+            </ul>
+            <p className="text-base text-muted-foreground leading-relaxed">
+              Every program is delivered free of charge to the neighbors we serve and is funded
+              through tax-deductible donations, foundation grants, in-kind contributions, and
+              county and municipal partnerships. We measure community impact not by how many
+              people pass through a shelter door, but by how many achieve sustained housing,
+              employment, and self-determination twelve and twenty-four months later. Our
+              outcomes reporting is shared openly with donors, partners, and the public so that
+              the model can be evaluated, refined, and replicated by other communities working
+              to end homelessness across Pennsylvania and beyond.
             </p>
           </div>
 

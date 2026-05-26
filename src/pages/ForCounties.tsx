@@ -3,6 +3,12 @@ import { Helmet } from "react-helmet-async";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Building2, ArrowRight, ShieldCheck, TrendingDown, Briefcase, Handshake, MapPin, BarChart3 } from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 const benefits = [
   { icon: MapPin, title: "Activate Underused Land", desc: "Convert idle municipal, redevelopment, or surplus parcels into measurable public good." },
@@ -13,11 +19,49 @@ const benefits = [
   { icon: ShieldCheck, title: "Scalable & Replicable", desc: "A pilot model built to expand across municipalities once outcomes are proven." },
 ];
 
+const faqs = [
+  {
+    q: "What does Klear Path actually deliver to a county or municipality?",
+    a: "A turnkey housing-stabilization pilot: site evaluation, participant intake, coordinated case management, workforce training pathways, employer placement, and quarterly outcome reporting that your board, council, or HUD CoC can cite directly.",
+  },
+  {
+    q: "Who pays for the pilot?",
+    a: "Klear Path pursues philanthropic, foundation, and state/federal funding to underwrite operations. County and municipal partners typically contribute land, surplus buildings, redevelopment alignment, or referrals through human-services agencies. We structure each agreement to minimize general-fund exposure.",
+  },
+  {
+    q: "What kind of land or property is suitable?",
+    a: "Underused municipal parcels of roughly 5–10 acres, surplus redevelopment authority properties, vacant institutional buildings, or sites already zoned for residential or mixed-use development. We perform a no-cost feasibility review for any candidate site.",
+  },
+  {
+    q: "How long does it take to launch a pilot?",
+    a: "Most pilots move from initial conversation to signed memorandum of understanding within 60–90 days, with on-site programming typically online within 6–12 months depending on site readiness and permitting.",
+  },
+  {
+    q: "How is impact measured and reported?",
+    a: "We track participant intake, length of stay, employment placement, 6-month retention, exits to permanent housing, and reductions in shelter, ER, and EMS utilization. Reports are delivered quarterly and formatted for council briefings, foundation reporting, and HUD CoC submission.",
+  },
+  {
+    q: "Is Klear Path a 501(c)(3)?",
+    a: "Yes. Klear Path Home, Inc. is a federally recognized 501(c)(3) public charity (EIN 41-3156622) headquartered at 410 Hopkins Ct, North Wales, PA 19454.",
+  },
+];
+
 const ForCounties = () => (
   <Layout>
     <Helmet>
       <title>For Counties & Municipalities | Klear Path</title>
       <meta name="description" content="Klear Path helps local governments turn underused land into measurable housing, workforce, and economic mobility outcomes through scalable pilot deployment." />
+      <script type="application/ld+json">
+        {JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: faqs.map((f) => ({
+            "@type": "Question",
+            name: f.q,
+            acceptedAnswer: { "@type": "Answer", text: f.a },
+          })),
+        })}
+      </script>
     </Helmet>
 
     <section className="py-16 lg:py-24 bg-primary text-primary-foreground">
@@ -70,6 +114,25 @@ const ForCounties = () => (
             <Link to="/land-partnerships"><Button variant="outline" size="lg">View Land Partnership Options</Button></Link>
           </div>
         </div>
+      </div>
+    </section>
+
+    <section className="py-16 lg:py-24 bg-background">
+      <div className="container-wide section-padding max-w-3xl mx-auto">
+        <h2 className="text-3xl lg:text-4xl font-serif font-bold text-foreground mb-4 text-center">
+          Frequently Asked Questions
+        </h2>
+        <p className="text-lg text-muted-foreground mb-10 text-center">
+          Answers for commissioners, redevelopment authorities, human services directors, and municipal staff.
+        </p>
+        <Accordion type="single" collapsible className="w-full">
+          {faqs.map((f, i) => (
+            <AccordionItem key={i} value={`item-${i}`}>
+              <AccordionTrigger className="text-left text-base font-semibold">{f.q}</AccordionTrigger>
+              <AccordionContent className="text-muted-foreground leading-relaxed">{f.a}</AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
       </div>
     </section>
   </Layout>

@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -12,19 +12,9 @@ const suggestedAmounts = [25, 50, 100, 250, 500, 1000];
 
 const Donate = () => {
   const { toast } = useToast();
-  const [searchParams] = useSearchParams();
   const [amount, setAmount] = useState<string>("");
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    if (searchParams.get("success") === "true") {
-      toast({
-        title: "Thank you for your donation!",
-        description: "Your generous gift helps build pathways from crisis to stability.",
-      });
-    }
-  }, [searchParams, toast]);
 
   const handleDonate = async () => {
     const numAmount = parseFloat(amount);
@@ -38,7 +28,7 @@ const Donate = () => {
         body: { amount: numAmount, email: email || undefined },
       });
       if (error) throw error;
-      if (data?.url) window.open(data.url, "_blank");
+      if (data?.url) window.location.href = data.url;
     } catch (err: any) {
       toast({ title: "Something went wrong", description: err.message, variant: "destructive" });
     } finally {
