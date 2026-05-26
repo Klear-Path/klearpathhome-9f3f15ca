@@ -53,6 +53,62 @@ const HousingStabilizationModel = () => {
         </div>
       </section>
 
+      {/* How the Model Works in Practice */}
+      <section className="py-16 lg:py-24 bg-background border-t border-border">
+        <div className="container-wide section-padding max-w-4xl">
+          <h2 className="text-3xl lg:text-4xl font-serif font-bold text-foreground mb-6">
+            How the Klear Path Model Works in Practice
+          </h2>
+          <p className="text-lg text-muted-foreground leading-relaxed mb-6">
+            The Klear Path housing stabilization model is structured around a single, continuous
+            pathway — from the moment a neighbor enters crisis to the moment they sign a
+            permanent lease and stay housed. Rather than handing participants between
+            disconnected agencies, Klear Path operates a unified pipeline so that intake,
+            stabilization, workforce development, and follow-up support are coordinated by one
+            accountable team.
+          </p>
+          <p className="text-lg text-muted-foreground leading-relaxed mb-6">
+            Phase one is <strong>safe intake</strong>. Every neighbor is met with a dignified,
+            trauma-informed assessment that captures immediate safety needs, identification
+            status, health and behavioral health needs, family connections, and employment
+            history. Identification recovery and benefits enrollment begin within the first
+            seventy-two hours, because no participant can secure housing or employment without
+            valid ID, a Social Security record, and the right benefits already in motion.
+          </p>
+          <p className="text-lg text-muted-foreground leading-relaxed mb-6">
+            Phase two is <strong>stabilization housing</strong>. Participants move into private,
+            climate-controlled transitional pods inside a micro-village community. Unlike
+            congregate shelter, this environment offers a locking door, a bed, storage, and the
+            psychological stability required to plan more than one day ahead. On-site staff
+            provide case management, recovery support, peer mentorship, and weekly planning
+            sessions tied to clear stabilization milestones.
+          </p>
+          <p className="text-lg text-muted-foreground leading-relaxed mb-6">
+            Phase three is <strong>workforce and skills</strong>. Participants engage in
+            structured workforce pathways that include job readiness, financial literacy,
+            identification-to-paycheck logistics, employer-aligned certifications (with a
+            particular emphasis on sustainable energy, weatherization, and skilled trades), and
+            direct placement with employer partners who have agreed to interview Klear Path
+            graduates. Retention check-ins occur at thirty, ninety, and one hundred eighty days.
+          </p>
+          <p className="text-lg text-muted-foreground leading-relaxed mb-6">
+            Phase four is <strong>exit and aftercare</strong>. Participants exit to permanent
+            housing — independent leases, family reunification, or supported permanent
+            placements — with continued coaching for at least twelve months. Aftercare is the
+            difference between a temporary success and a permanent one, and it is the phase
+            most legacy programs skip.
+          </p>
+          <p className="text-lg text-muted-foreground leading-relaxed">
+            Wrapping all four phases is <strong>AI-assisted coordination</strong>: intake
+            documentation, referral matching, grant reporting, and outcome dashboards are
+            partially automated so that a small staff can serve significantly more neighbors
+            without losing the relational quality that makes the model work. The result is a
+            measurable, replicable framework that county partners, foundations, and workforce
+            boards can underwrite with confidence.
+          </p>
+        </div>
+      </section>
+
       {/* The Klear Path Model — Three Pillars */}
       <section className="py-16 lg:py-24 bg-secondary">
         <div className="container-wide section-padding">
