@@ -42,7 +42,7 @@ export function Header() {
                 {item.name}
               </Link>
             ))}
-            <Link to="/donate" className="ml-2">
+            <Link to="/donate" className="ml-2" data-cta="nav-donate">
               <Button variant="default" size="sm">
                 Donate
               </Button>
@@ -78,7 +78,7 @@ export function Header() {
                   {item.name}
                 </Link>
               ))}
-              <Link to="/donate" onClick={() => setMobileMenuOpen(false)} className="mt-2">
+              <Link to="/donate" onClick={() => setMobileMenuOpen(false)} className="mt-2" data-cta="mobile-menu-donate">
                 <Button variant="default" className="w-full">
                   Donate
                 </Button>
