@@ -1,10 +1,26 @@
 import { Link } from "react-router-dom";
+import { useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Heart, Home, ArrowRight } from "lucide-react";
 
-const ThankYou = () => (
+declare global {
+  interface Window {
+    gtag?: (...args: any[]) => void;
+  }
+}
+
+const ThankYou = () => {
+  useEffect(() => {
+    if (typeof window !== "undefined" && typeof window.gtag === "function") {
+      window.gtag("event", "conversion", {
+        send_to: "AW-18192459416/gQELCOC-tbccEJjN6-JD",
+      });
+    }
+  }, []);
+
+  return (
   <Layout>
     <Helmet>
       <title>Thank You for Your Gift | Klear Path</title>
@@ -72,6 +88,7 @@ const ThankYou = () => (
       </div>
     </section>
   </Layout>
-);
+  );
+};
 
 export default ThankYou;
