@@ -16,6 +16,10 @@ import HousingStabilizationModel from "./pages/HousingStabilizationModel";
 import ForCounties from "./pages/ForCounties";
 import LandPartnerships from "./pages/LandPartnerships";
 import FundAPilot from "./pages/FundAPilot";
+import Veterans from "./pages/Veterans";
+import DignityFirstModel from "./pages/DignityFirstModel";
+import CorporateSponsors from "./pages/CorporateSponsors";
+import EmployerPartners from "./pages/EmployerPartners";
 import ThankYou from "./pages/ThankYou";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import NotFound from "./pages/NotFound";
@@ -42,6 +46,10 @@ const App = () => (
             <Route path="/for-counties" element={<ForCounties />} />
             <Route path="/land-partnerships" element={<LandPartnerships />} />
             <Route path="/fund-a-pilot" element={<FundAPilot />} />
+            <Route path="/veterans" element={<Veterans />} />
+            <Route path="/dignity-first-model" element={<DignityFirstModel />} />
+            <Route path="/corporate-sponsors" element={<CorporateSponsors />} />
+            <Route path="/employer-partners" element={<EmployerPartners />} />
             <Route path="/impact" element={<Impact />} />
             <Route path="/get-involved" element={<GetInvolved />} />
             <Route path="/donate" element={<Donate />} />
