@@ -5,18 +5,18 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Target, BarChart3, FileCheck, Repeat } from "lucide-react";
 
 const tiers = [
-  { amount: "$5,000", label: "Participant Readiness", desc: "Funds intake, onboarding, and individual readiness for one cohort participant." },
-  { amount: "$10,000", label: "Workforce Training & Placement", desc: "Supports skill development, soft skills, and job placement pathways." },
-  { amount: "$25,000", label: "Pilot Operations & Tracking", desc: "Underwrites case management, retention monitoring, and outcomes reporting." },
-  { amount: "$50,000+", label: "Anchor a Pilot Site", desc: "Anchors deployment of a full pilot cohort with measurable, reportable outcomes." },
-  { amount: "Custom", label: "Major Gift Opportunities", desc: "Naming, legacy, and multi-year structured giving available by conversation." },
+  { amount: "$5,000", label: "Participant Intake & Stabilization", desc: "Supports participant intake, onboarding, and stabilization supports." },
+  { amount: "$10,000", label: "Workforce Readiness & Transportation", desc: "Supports workforce readiness, transportation planning, and employment preparation." },
+  { amount: "$25,000", label: "Pilot Coordination & Reporting", desc: "Supports pilot coordination, participant tracking, and outcome reporting." },
+  { amount: "$50,000+", label: "Anchor a Pilot Site", desc: "Anchors pilot development, operational infrastructure, and scalable deployment planning." },
+  { amount: "Custom", label: "Major Gift Opportunities", desc: "Supports land, infrastructure, technology, or full pilot sponsorship conversations." },
 ];
 
 const principles = [
-  { icon: Target, title: "Outcome-Designed", desc: "Built around employment, retention, and housing stability milestones." },
-  { icon: BarChart3, title: "Measurable", desc: "Participant tracking, employment data, and retention metrics from day one." },
-  { icon: FileCheck, title: "Reportable", desc: "Funder-ready reporting aligned with foundation and government standards." },
-  { icon: Repeat, title: "Replicable", desc: "Engineered as a pilot model that can scale to additional sites and counties." },
+  { icon: Target, title: "Measurable Outcomes", desc: "Employment, retention, and housing stability milestones built into every cohort." },
+  { icon: BarChart3, title: "Transparent Reporting", desc: "Participant tracking, employment data, and retention metrics available to funders." },
+  { icon: FileCheck, title: "Milestone Tracking", desc: "Participant milestones, employment placement, and retention tracked end-to-end." },
+  { icon: Repeat, title: "Scalable Infrastructure", desc: "Cloud-supported data infrastructure engineered for replicable deployment." },
 ];
 
 const FundAPilot = () => (
@@ -31,10 +31,13 @@ const FundAPilot = () => (
         <div className="max-w-3xl">
           <p className="text-primary-foreground/70 font-medium mb-3 tracking-wide uppercase text-sm">Built for Funders</p>
           <h1 className="text-4xl lg:text-5xl font-serif font-bold mb-6">Fund a Pilot. Prove the Model. Scale the Impact.</h1>
-          <p className="text-xl text-primary-foreground/90 leading-relaxed mb-8">
-            Klear Path is engineered around measurable outcomes, transparent reporting, and a replicable structure foundations and major donors can underwrite with confidence.
+          <p className="text-xl text-primary-foreground/90 leading-relaxed mb-4">
+            Help launch a measurable workforce-centered housing stability pilot designed to move people from instability into employment, retention, and long-term independence.
           </p>
-          <Link to="/contact"><Button variant="hero" size="xl">Start a Funding Conversation<ArrowRight className="w-5 h-5" /></Button></Link>
+          <p className="text-lg text-primary-foreground/80 leading-relaxed mb-8 font-medium">
+            Fund the infrastructure. Prove the model. Scale what works.
+          </p>
+          <Link to="/contact"><Button variant="hero" size="xl" data-cta="funding_inquiry_submit">Start a Funding Conversation<ArrowRight className="w-5 h-5" /></Button></Link>
         </div>
       </div>
     </section>
@@ -55,8 +58,10 @@ const FundAPilot = () => (
           ))}
         </div>
         <div className="mt-10 flex flex-col sm:flex-row gap-4">
-          <Link to="/contact"><Button size="lg">Start a Funding Conversation<ArrowRight className="w-4 h-4" /></Button></Link>
-          <Link to="/donate"><Button variant="outline" size="lg">Make a One-Time Gift</Button></Link>
+          <Link to="/contact"><Button size="lg" data-cta="funding_inquiry_submit">Start a Funding Conversation<ArrowRight className="w-4 h-4" /></Button></Link>
+          <Link to="/donate"><Button variant="outline" size="lg" data-cta="donation_click">Make a One-Time Gift</Button></Link>
+          <Link to="/land-partnerships"><Button variant="outline" size="lg">Land Partnerships</Button></Link>
+          <Link to="/for-counties"><Button variant="outline" size="lg">County Partnerships</Button></Link>
         </div>
       </div>
     </section>
@@ -64,7 +69,8 @@ const FundAPilot = () => (
     <section className="py-16 lg:py-24 bg-secondary">
       <div className="container-wide section-padding">
         <div className="max-w-3xl mb-10">
-          <h2 className="text-3xl lg:text-4xl font-serif font-bold text-foreground mb-4">Designed Around What Funders Need</h2>
+          <h2 className="text-3xl lg:text-4xl font-serif font-bold text-foreground mb-4">Built for Accountability</h2>
+          <p className="text-lg text-muted-foreground">Measurable, transparent, and reportable from Day One.</p>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {principles.map((p) => (
@@ -76,6 +82,9 @@ const FundAPilot = () => (
               <p className="text-sm text-muted-foreground">{p.desc}</p>
             </div>
           ))}
+        </div>
+        <div className="mt-10">
+          <Link to="/impact"><Button variant="outline" size="lg">See Impact & Accountability<ArrowRight className="w-4 h-4" /></Button></Link>
         </div>
       </div>
     </section>

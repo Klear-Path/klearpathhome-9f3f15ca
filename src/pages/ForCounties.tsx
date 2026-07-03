@@ -49,8 +49,10 @@ const faqs = [
 const ForCounties = () => (
   <Layout>
     <Helmet>
-      <title>For Counties & Municipalities | Klear Path</title>
-      <meta name="description" content="Klear Path helps local governments turn underused land into measurable housing, workforce, and economic mobility outcomes through scalable pilot deployment." />
+      <title>County & Municipal Housing Stability Pilots | Klear Path</title>
+      <meta name="description" content="A practical pilot model for communities ready to reduce instability. Klear Path partners with counties and municipalities on workforce-driven housing stability pilots." />
+      <meta name="keywords" content="county housing stability pilot, public-private housing partnership, housing stability programs, workforce-driven housing solutions" />
+      <link rel="canonical" href="https://klearpathhome.org/for-counties" />
       <script type="application/ld+json">
         {JSON.stringify({
           "@context": "https://schema.org",
@@ -68,13 +70,11 @@ const ForCounties = () => (
       <div className="container-wide section-padding">
         <div className="max-w-3xl">
           <p className="text-primary-foreground/70 font-medium mb-3 tracking-wide uppercase text-sm">For Counties & Municipalities</p>
-          <h1 className="text-4xl lg:text-5xl font-serif font-bold mb-6">Turn Idle Land Into Measurable Outcomes</h1>
+          <h1 className="text-4xl lg:text-5xl font-serif font-bold mb-6">A Practical Pilot Model for Communities Ready to Reduce Instability</h1>
           <p className="text-xl text-primary-foreground/90 leading-relaxed mb-8">
-            Klear Path helps local governments convert underused land into housing, workforce, and economic mobility results—without expanding existing crisis systems.
+            Klear Path helps communities explore scalable housing stability pilots tied to workforce reintegration, public-private partnerships, and measurable outcomes.
           </p>
-          <Link to="/contact">
-            <Button variant="hero" size="xl">Start a Partnership Conversation<ArrowRight className="w-5 h-5" /></Button>
-          </Link>
+          <Link to="/contact"><Button variant="hero" size="xl" data-cta="county_inquiry_submit">Discuss a County Pilot<ArrowRight className="w-5 h-5" /></Button></Link>
         </div>
       </div>
     </section>
@@ -110,8 +110,10 @@ const ForCounties = () => (
             Let's turn it into a pathway home. We work with counties to evaluate sites, structure agreements, and deploy a pilot designed to produce reportable outcomes.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/contact"><Button size="lg">Request a Site Evaluation<ArrowRight className="w-4 h-4" /></Button></Link>
+            <Link to="/contact"><Button size="lg" data-cta="county_inquiry_submit">Request a Site Evaluation<ArrowRight className="w-4 h-4" /></Button></Link>
             <Link to="/land-partnerships"><Button variant="outline" size="lg">View Land Partnership Options</Button></Link>
+            <Link to="/housing-stabilization-model"><Button variant="outline" size="lg">See the Full Model</Button></Link>
+            <Link to="/impact"><Button variant="outline" size="lg">Impact &amp; Accountability</Button></Link>
           </div>
         </div>
       </div>

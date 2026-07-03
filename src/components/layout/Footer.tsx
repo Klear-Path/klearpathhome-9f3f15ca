@@ -26,9 +26,13 @@ export function Footer() {
             <h3 className="font-semibold text-lg mb-4">Explore</h3>
             <ul className="space-y-2 text-sm text-white/80">
               <li><Link to="/housing-stabilization-model" className="hover:text-white">Our Model</Link></li>
+              <li><Link to="/dignity-first-model" className="hover:text-white">Dignity-First Model</Link></li>
               <li><Link to="/for-counties" className="hover:text-white">For Counties</Link></li>
               <li><Link to="/land-partnerships" className="hover:text-white">Land Partnerships</Link></li>
               <li><Link to="/fund-a-pilot" className="hover:text-white">Fund a Pilot</Link></li>
+              <li><Link to="/veterans" className="hover:text-white">Support Veterans</Link></li>
+              <li><Link to="/corporate-sponsors" className="hover:text-white">Corporate Sponsors</Link></li>
+              <li><Link to="/employer-partners" className="hover:text-white">Employer Partners</Link></li>
               <li><Link to="/partners" className="hover:text-white">Partners</Link></li>
               <li><Link to="/impact" className="hover:text-white">Impact &amp; Accountability</Link></li>
               <li><Link to="/volunteer" className="hover:text-white">Volunteer</Link></li>
@@ -49,8 +53,11 @@ export function Footer() {
               </div>
               <div className="flex items-center gap-2">
                 <Mail className="w-4 h-4" />
-                <a href="mailto:info@klearpathhome.org" className="underline">info@klearpathhome.org</a>
+                <a href="mailto:erickmckee@klearpathhome.org" className="underline">erickmckee@klearpathhome.org</a>
               </div>
+              <p className="text-xs text-white/60 mt-2">
+                Service focus: Montgomery County, Bucks County, and the Pottstown regional service area.
+              </p>
               <div>
                 <Link to="/contact" className="underline">Contact form</Link>
               </div>
@@ -74,7 +81,7 @@ export function Footer() {
 
         </div>
         <div className="border-t border-white/10 mt-10 pt-8 text-center text-xs text-white/50">
-          <p>© {new Date().getFullYear()} Klear Path Home, Inc. · 501(c)(3) · EIN 41-3156622 · 410 Hopkins Ct, North Wales, PA 19454. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Klear Path Home, Inc. · 501(c)(3) nonprofit · EIN 41-3156622 · 410 Hopkins Ct, North Wales, PA 19454 · Serving Montgomery County, Bucks County, and the Pottstown regional service area. All rights reserved.</p>
         </div>
       </div>
     </footer>
