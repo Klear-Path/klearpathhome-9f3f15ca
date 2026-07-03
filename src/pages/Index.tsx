@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import {
   ArrowRight, Shield, Briefcase, TrendingUp, Heart, Building2, MapPin, Sun,
   FileText, BarChart3, Target, CheckCircle2, Handshake, Users, Landmark,
-  Church, Cpu, Factory, GraduationCap, HeartHandshake,
+  Church, Cpu, Factory, GraduationCap, HeartHandshake, Coffee,
 } from "lucide-react";
 
 const Index = () => {
@@ -43,10 +43,10 @@ const Index = () => {
               crisis to employment, retention, and independence.
             </p>
             <div className="flex flex-wrap gap-3">
-              <Link to="/for-counties"><Button variant="hero" size="xl"><Handshake className="w-5 h-5" />Partner With Us</Button></Link>
-              <Link to="/fund-a-pilot"><Button variant="hero" size="xl"><Target className="w-5 h-5" />Fund a Pilot Site</Button></Link>
-              <Link to="/land-partnerships"><Button variant="hero-outline" size="xl"><MapPin className="w-5 h-5" />Donate Land or Property</Button></Link>
-              <Link to="/donate"><Button variant="hero-outline" size="xl"><Heart className="w-5 h-5" />Support the Mission</Button></Link>
+              <Link to="/for-counties"><Button variant="hero" size="xl" data-cta="county_inquiry_submit"><Handshake className="w-5 h-5" />Partner With Us</Button></Link>
+              <Link to="/fund-a-pilot"><Button variant="hero" size="xl" data-cta="fund_pilot_click"><Target className="w-5 h-5" />Fund a Pilot Site</Button></Link>
+              <Link to="/land-partnerships"><Button variant="hero-outline" size="xl" data-cta="land_inquiry_submit"><MapPin className="w-5 h-5" />Donate Land or Property</Button></Link>
+              <Link to="/donate"><Button variant="hero-outline" size="xl" data-cta="donation_click"><Heart className="w-5 h-5" />Support the Mission</Button></Link>
             </div>
           </div>
         </div>
@@ -73,6 +73,58 @@ const Index = () => {
               individuals cycle through shelters, ERs, and crisis systems—at significant public cost
               and minimal long-term outcome.
             </p>
+          </div>
+        </div>
+      </section>
+
+      {/* DAY ONE */}
+      <section className="py-16 lg:py-20 bg-background border-b border-border">
+        <div className="container-wide section-padding">
+          <div className="grid lg:grid-cols-3 gap-8 items-center">
+            <div className="lg:col-span-2">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Coffee className="w-6 h-6 text-primary" />
+                </div>
+                <p className="text-primary font-medium tracking-wide uppercase text-sm">Stability Starts on Day One</p>
+              </div>
+              <h2 className="text-3xl lg:text-4xl font-serif font-bold text-foreground mb-4">Before forms. Before systems. Before questions.</h2>
+              <p className="text-lg text-muted-foreground leading-relaxed">
+                Before forms, requirements, or systems, Klear Path begins with dignity: food, water, safety, trust, and a path forward. Dignity comes before paperwork — and every pathway starts on Day One.
+              </p>
+            </div>
+            <div className="flex flex-col gap-3">
+              <Link to="/donate"><Button size="lg" className="w-full" data-cta="donation_click">Support Day One Stability<ArrowRight className="w-4 h-4" /></Button></Link>
+              <Link to="/dignity-first-model"><Button variant="outline" size="lg" className="w-full">Read the Dignity-First Model</Button></Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* PARTNER PATHWAYS */}
+      <section className="py-16 lg:py-24 bg-secondary">
+        <div className="container-wide section-padding">
+          <div className="max-w-3xl mb-10">
+            <p className="text-primary font-medium mb-3 tracking-wide uppercase text-sm">Choose Your Pathway</p>
+            <h2 className="text-3xl lg:text-4xl font-serif font-bold text-foreground mb-4">Every stakeholder has a role in stability.</h2>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {[
+              { to: "/donate", icon: Heart, t: "Donate Today", d: "Fund dignity-first stabilization support.", cta: "donation_click" },
+              { to: "/fund-a-pilot", icon: Target, t: "Fund a Pilot", d: "Underwrite a full workforce-driven pilot cohort.", cta: "fund_pilot_click" },
+              { to: "/land-partnerships", icon: MapPin, t: "Donate Land or Property", d: "Turn idle parcels into launchpads for stability.", cta: "land_inquiry_submit" },
+              { to: "/for-counties", icon: Landmark, t: "Partner as a County", d: "Deploy a scalable public-private pilot model.", cta: "county_inquiry_submit" },
+              { to: "/employer-partners", icon: Briefcase, t: "Become an Employer Partner", d: "Open workforce pipelines from stabilization to retention.", cta: "employer_partner_submit" },
+              { to: "/veterans", icon: Shield, t: "Support Veterans Facing Instability", d: "Back workforce reintegration pathways for veterans.", cta: "veteran_support_click" },
+            ].map((c) => (
+              <Link key={c.t} to={c.to} data-cta={c.cta} className="bg-card border border-border rounded-xl p-6 hover:shadow-medium transition-shadow">
+                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+                  <c.icon className="w-6 h-6 text-primary" />
+                </div>
+                <h3 className="font-serif text-lg font-semibold text-foreground mb-2">{c.t}</h3>
+                <p className="text-sm text-muted-foreground">{c.d}</p>
+              </Link>
+            ))}
           </div>
         </div>
       </section>
