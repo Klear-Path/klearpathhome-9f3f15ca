@@ -19,11 +19,16 @@ const DOCUMENTS = [
   { id: "other", label: "Something else" },
 ] as const;
 
+/**
+ * Fees and timelines verified August 2026 against the issuing agencies:
+ * PA Department of Health (vital records), PennDOT, SSA, and NPRC. Re-check
+ * before relying on these in advertising — agencies change them without notice.
+ */
 const COVERAGE = [
   {
     doc: "Certified birth certificate (PA)",
     cost: "$20",
-    time: "2–3 weeks by mail, same day in person",
+    time: "Same day in person, 2–3 weeks by mail",
   },
   {
     doc: "Replacement Social Security card",
@@ -32,8 +37,13 @@ const COVERAGE = [
   },
   {
     doc: "Pennsylvania photo ID",
-    cost: "Varies",
-    time: "Same day at PennDOT",
+    cost: "$43.50",
+    time: "Same day at a REAL ID Center, otherwise ~15 business days",
+  },
+  {
+    doc: "REAL ID photo ID",
+    cost: "$61.50",
+    time: "Same day at a REAL ID Center, otherwise ~15 business days",
   },
   {
     doc: "DD-214 military discharge",
@@ -288,6 +298,43 @@ const GetHelp = () => {
               can change — we'll tell you what to expect when we talk. If you need
               something not listed here, ask anyway.
             </p>
+
+            <div className="mt-6 rounded-2xl border border-primary/30 bg-accent p-6">
+              <h3 className="font-serif text-lg font-semibold text-foreground">
+                If you're experiencing homelessness, your PA photo ID is already free
+              </h3>
+              <p className="mt-2 leading-relaxed text-muted-foreground">
+                Under Act 131 of 2020, PennDOT issues a free initial or renewal photo ID
+                to Pennsylvanians experiencing homelessness. You apply in person at a
+                Driver License Center, tell the counter staff you're requesting a free ID
+                due to homeless status, and complete form DL-54H. A letter from a shelter
+                works as proof of address. You'll still need proof of identity and a
+                Social Security card — which is what we're here to help you replace.
+              </p>
+              <p className="mt-3 leading-relaxed text-muted-foreground">
+                Ask us anyway. We'll walk you through which office to go to and what to
+                bring, so you don't lose a day to a wasted trip.
+              </p>
+            </div>
+
+            <div className="mt-6 space-y-2 text-sm leading-relaxed text-muted-foreground">
+              <p>
+                <span className="font-medium text-foreground">Birth certificates:</span>{" "}
+                $20 for the first copy and $10 for each additional copy ordered at the
+                same time. Ordering online through VitalChek adds a $10 service fee, so
+                we usually order by mail or go in person. In-person requests made before
+                2:30 p.m. at a Vital Records public office are filled the same day.
+              </p>
+              <p>
+                <span className="font-medium text-foreground">
+                  Social Security cards:
+                </span>{" "}
+                always free from SSA, but limited to 3 replacements per year and 10 in a
+                lifetime. Name changes and corrections don't count against those limits,
+                and SSA grants hardship exceptions if you have a letter from an employer
+                or agency saying you need the physical card.
+              </p>
+            </div>
           </div>
         </div>
       </section>
