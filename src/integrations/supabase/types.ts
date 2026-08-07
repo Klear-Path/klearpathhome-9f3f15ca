@@ -14,7 +14,108 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      contact_submissions: {
+        Row: {
+          availability: string | null
+          created_at: string
+          email: string | null
+          form: string
+          handled_at: string | null
+          id: string
+          inquiry_type: string | null
+          interests: string[]
+          message: string | null
+          name: string | null
+          organization: string | null
+          phone: string | null
+          status: string
+          subject: string | null
+        }
+        Insert: {
+          availability?: string | null
+          created_at?: string
+          email?: string | null
+          form: string
+          handled_at?: string | null
+          id?: string
+          inquiry_type?: string | null
+          interests?: string[]
+          message?: string | null
+          name?: string | null
+          organization?: string | null
+          phone?: string | null
+          status?: string
+          subject?: string | null
+        }
+        Update: {
+          availability?: string | null
+          created_at?: string
+          email?: string | null
+          form?: string
+          handled_at?: string | null
+          id?: string
+          inquiry_type?: string | null
+          interests?: string[]
+          message?: string | null
+          name?: string | null
+          organization?: string | null
+          phone?: string | null
+          status?: string
+          subject?: string | null
+        }
+        Relationships: []
+      }
+      help_requests: {
+        Row: {
+          county: string | null
+          created_at: string
+          deadline: string | null
+          documents: string[]
+          documents_other: string | null
+          email: string | null
+          handled_at: string | null
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          source: string
+          status: string
+          veteran: boolean
+        }
+        Insert: {
+          county?: string | null
+          created_at?: string
+          deadline?: string | null
+          documents?: string[]
+          documents_other?: string | null
+          email?: string | null
+          handled_at?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          source?: string
+          status?: string
+          veteran?: boolean
+        }
+        Update: {
+          county?: string | null
+          created_at?: string
+          deadline?: string | null
+          documents?: string[]
+          documents_other?: string | null
+          email?: string | null
+          handled_at?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          source?: string
+          status?: string
+          veteran?: boolean
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

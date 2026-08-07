@@ -7,29 +7,54 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Users, Heart, Hammer, Utensils, BookOpen, Clock, CheckCircle } from "lucide-react";
+import { HoneypotField } from "@/components/HoneypotField";
+import { submitContactSubmission, submissionErrorMessage } from "@/lib/forms";
+
+const emptyForm = {
+  name: "",
+  email: "",
+  phone: "",
+  interests: [] as string[],
+  availability: "",
+  message: "",
+};
 
 const Volunteer = () => {
   const { toast } = useToast();
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    interests: [] as string[],
-    availability: "",
-    message: "",
-  });
+  const [formData, setFormData] = useState(emptyForm);
+  const [honeypot, setHoneypot] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    toast({
-      title: "Thank you for your interest!",
-      description: "We'll be in touch soon to discuss volunteer opportunities.",
-    });
-    setFormData({ name: "", email: "", phone: "", interests: [], availability: "", message: "" });
-    setIsSubmitting(false);
+
+    try {
+      await submitContactSubmission({
+        form: "volunteer",
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        interests: formData.interests,
+        availability: formData.availability,
+        message: formData.message,
+        honeypot,
+      });
+
+      toast({
+        title: "Thank you for your interest!",
+        description: "We'll be in touch soon to discuss volunteer opportunities.",
+      });
+      setFormData(emptyForm);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "That didn't send",
+        description: submissionErrorMessage(error),
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const toggleInterest = (interest: string) => {
@@ -116,7 +141,8 @@ const Volunteer = () => {
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="bg-card rounded-2xl p-8 shadow-medium border border-border">
+            <form onSubmit={handleSubmit} className="relative bg-card rounded-2xl p-8 shadow-medium border border-border">
+              <HoneypotField id="volunteer-website" value={honeypot} onChange={setHoneypot} />
               <div className="space-y-6">
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="space-y-2">

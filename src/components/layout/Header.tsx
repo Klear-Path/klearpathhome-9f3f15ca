@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LifeBuoy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const navigation = [
@@ -28,7 +28,7 @@ export function Header() {
             <span className="font-serif font-semibold text-xl text-foreground">Klear Path</span>
           </Link>
 
-          <div className="hidden lg:flex lg:items-center lg:gap-1">
+          <div className="hidden xl:flex xl:items-center xl:gap-1">
             {navigation.map((item) => (
               <Link
                 key={item.name}
@@ -42,6 +42,12 @@ export function Header() {
                 {item.name}
               </Link>
             ))}
+            <Link to="/get-help" className="ml-2" data-cta="nav-get-help">
+              <Button variant="outline" size="sm">
+                <LifeBuoy className="h-4 w-4" aria-hidden="true" />
+                Get Help
+              </Button>
+            </Link>
             <Link to="/donate" className="ml-2" data-cta="nav-donate">
               <Button variant="default" size="sm">
                 Donate
@@ -51,7 +57,7 @@ export function Header() {
 
           <button
             type="button"
-            className="lg:hidden p-2 rounded-md text-foreground"
+            className="xl:hidden p-2 rounded-md text-foreground"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-expanded={mobileMenuOpen}
             aria-controls="mobile-menu"
@@ -62,8 +68,19 @@ export function Header() {
         </div>
 
         {mobileMenuOpen && (
-          <div id="mobile-menu" className="lg:hidden pb-4 animate-fade-in">
+          <div id="mobile-menu" className="xl:hidden pb-4 animate-fade-in">
             <div className="flex flex-col gap-1">
+              <Link
+                to="/get-help"
+                onClick={() => setMobileMenuOpen(false)}
+                className="mb-2"
+                data-cta="mobile-menu-get-help"
+              >
+                <Button variant="outline" className="w-full">
+                  <LifeBuoy className="h-4 w-4" aria-hidden="true" />
+                  Get Help
+                </Button>
+              </Link>
               {navigation.map((item) => (
                 <Link
                   key={item.name}

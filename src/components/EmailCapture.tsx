@@ -2,16 +2,35 @@ import { useState } from "react";
 import { Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { HoneypotField } from "@/components/HoneypotField";
+import { submitContactSubmission, submissionErrorMessage } from "@/lib/forms";
 
 export function EmailCapture() {
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
-  const [submitted, setSubmitted] = useState(false);
+  const [honeypot, setHoneypot] = useState("");
+  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!email) return;
-    setSubmitted(true);
+    if (!email || status === "sending") return;
+
+    setStatus("sending");
+    setErrorMessage("");
+
+    try {
+      await submitContactSubmission({
+        form: "newsletter",
+        name: firstName,
+        email,
+        honeypot,
+      });
+      setStatus("sent");
+    } catch (error) {
+      setErrorMessage(submissionErrorMessage(error));
+      setStatus("error");
+    }
   };
 
   return (
@@ -30,7 +49,8 @@ export function EmailCapture() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="bg-card border border-border rounded-2xl p-6 shadow-soft">
+          <form onSubmit={handleSubmit} className="relative bg-card border border-border rounded-2xl p-6 shadow-soft">
+            <HoneypotField id="newsletter-website" value={honeypot} onChange={setHoneypot} />
             <div className="grid sm:grid-cols-2 gap-3 mb-4">
               <Input
                 placeholder="First name"
@@ -46,13 +66,19 @@ export function EmailCapture() {
               />
             </div>
 
-            <Button type="submit" data-cta="email-capture-submit">
-              Stay Connected
+            <Button type="submit" data-cta="email-capture-submit" disabled={status === "sending"}>
+              {status === "sending" ? "Adding you…" : "Stay Connected"}
             </Button>
 
-            {submitted && (
+            {status === "sent" && (
               <p className="text-sm text-primary font-medium mt-4">
                 You’re on the list. More updates coming soon.
+              </p>
+            )}
+
+            {status === "error" && (
+              <p role="alert" className="text-sm text-destructive font-medium mt-4">
+                {errorMessage}
               </p>
             )}
 

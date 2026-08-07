@@ -6,41 +6,57 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, Phone, MapPin, Clock, Send } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Mail, Phone, MapPin, Clock, Send, LifeBuoy } from "lucide-react";
+import { HoneypotField } from "@/components/HoneypotField";
+import { submitContactSubmission, submissionErrorMessage } from "@/lib/forms";
+import { PHONES, SITE } from "@/lib/site";
+
+const emptyForm = {
+  name: "",
+  email: "",
+  phone: "",
+  inquiryType: "",
+  subject: "",
+  message: ""
+};
 
 const Contact = () => {
   const { toast } = useToast();
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    inquiryType: "",
-    subject: "",
-    message: ""
-  });
+  const [formData, setFormData] = useState(emptyForm);
+  const [honeypot, setHoneypot] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    toast({
-      title: "Message sent!",
-      description: "Thank you for reaching out. We'll respond within 2 business days.",
-    });
-    
-    setFormData({
-      name: "",
-      email: "",
-      phone: "",
-      inquiryType: "",
-      subject: "",
-      message: ""
-    });
-    setIsSubmitting(false);
+
+    try {
+      await submitContactSubmission({
+        form: "contact",
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        inquiryType: formData.inquiryType,
+        subject: formData.subject,
+        message: formData.message,
+        honeypot,
+      });
+
+      toast({
+        title: "Message sent!",
+        description: "Thank you for reaching out. We'll respond within 2 business days.",
+      });
+      setFormData(emptyForm);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "That didn't send",
+        description: submissionErrorMessage(error),
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -69,7 +85,8 @@ const Contact = () => {
               <div className="bg-card rounded-2xl p-8 shadow-medium border border-border">
                 <h2 className="font-serif text-2xl font-semibold mb-6">Send Us a Message</h2>
                 
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} className="relative space-y-6">
+                  <HoneypotField id="contact-website" value={honeypot} onChange={setHoneypot} />
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="name">Full Name *</Label>
@@ -154,14 +171,31 @@ const Contact = () => {
 
             {/* Contact Info Sidebar */}
             <div className="space-y-6">
+              <div className="bg-primary rounded-xl p-6 text-primary-foreground">
+                <LifeBuoy className="w-8 h-8 mb-3" />
+                <h3 className="font-serif font-semibold text-lg mb-2">
+                  Need a document replaced?
+                </h3>
+                <p className="text-primary-foreground/90 text-sm mb-4">
+                  If you've lost a birth certificate, state ID, Social Security card, or
+                  DD-214, we cover the fee. Don't use this form — go straight to the
+                  intake page so we can start.
+                </p>
+                <Button asChild variant="secondary" size="sm">
+                  <Link to="/get-help" data-cta="contact-get-help">
+                    Get help with documents
+                  </Link>
+                </Button>
+              </div>
+
               <div className="bg-accent rounded-xl p-6">
                 <Mail className="w-8 h-8 text-primary mb-3" />
                 <h3 className="font-serif font-semibold text-lg mb-2">Email</h3>
-                <a 
-                  href="mailto:ErickMcKee@KlearPathHome.ORG" 
-                  className="text-primary hover:underline"
+                <a
+                  href={`mailto:${SITE.email}`}
+                  className="text-primary hover:underline break-all"
                 >
-                  ErickMcKee@KlearPathHome.ORG
+                  {SITE.email}
                 </a>
                 <p className="text-sm text-muted-foreground mt-2">
                   For general inquiries and information
@@ -171,32 +205,29 @@ const Contact = () => {
               <div className="bg-accent rounded-xl p-6">
                 <Phone className="w-8 h-8 text-primary mb-3" />
                 <h3 className="font-serif font-semibold text-lg mb-2">Phone</h3>
-                <a 
-                  href="tel:+12159867246" 
-                  className="text-primary hover:underline block"
-                >
-                  (215) 986-7246
-                </a>
-                <a 
-                  href="tel:+18444558883" 
-                  className="text-primary hover:underline block mt-1"
-                >
-                  (844) 455-8883
-                </a>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Monday - Friday, 9am - 5pm EST
-                </p>
+                {PHONES.map((phone) => (
+                  <a
+                    key={phone.href}
+                    href={`tel:${phone.href}`}
+                    className="text-primary hover:underline block first:mt-0 mt-1"
+                  >
+                    {phone.display}
+                  </a>
+                ))}
+                <p className="text-sm text-muted-foreground mt-2">{SITE.officeHours}</p>
               </div>
 
               <div className="bg-accent rounded-xl p-6">
                 <MapPin className="w-8 h-8 text-primary mb-3" />
-                <h3 className="font-serif font-semibold text-lg mb-2">Service Area</h3>
-                <p className="text-foreground">
-                  Bucks & Montgomery Counties<br />
-                  Pennsylvania
-                </p>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Flagship campus location to be announced
+                <h3 className="font-serif font-semibold text-lg mb-2">Mailing Address</h3>
+                <address className="text-foreground not-italic">
+                  {SITE.legalName}<br />
+                  {SITE.address.street}<br />
+                  {SITE.address.city}, {SITE.address.state} {SITE.address.zip}
+                </address>
+                <p className="text-sm text-muted-foreground mt-3">
+                  Service area: {SITE.serviceArea}. Flagship campus location to be
+                  announced.
                 </p>
               </div>
 
@@ -237,9 +268,15 @@ const Contact = () => {
               <div className="bg-card rounded-xl p-6 shadow-soft border border-border">
                 <h3 className="font-semibold mb-2">How can I refer someone who needs help?</h3>
                 <p className="text-muted-foreground text-sm">
-                  While our campus is under development, we're happy to connect individuals 
-                  with existing resources in Bucks and Montgomery Counties. Please contact us 
-                  and we'll do our best to help.
+                  If they need a replacement birth certificate, state ID, Social Security
+                  card, or DD-214, send them to our{" "}
+                  <Link to="/get-help" className="text-primary underline">
+                    Get Help
+                  </Link>{" "}
+                  page — we cover the fee, with no income requirement and no screening.
+                  For anything else, while our campus is under development we're happy to
+                  connect individuals with existing resources in Bucks and Montgomery
+                  Counties. Contact us and we'll do our best to help.
                 </p>
               </div>
 

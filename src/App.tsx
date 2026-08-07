@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { HelmetProvider, Helmet } from "react-helmet-async";
 import Index from "./pages/Index";
+import GetHelp from "./pages/GetHelp";
 import Partners from "./pages/Partners";
 import Impact from "./pages/Impact";
 import GetInvolved from "./pages/GetInvolved";
@@ -40,6 +41,8 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/get-help" element={<GetHelp />} />
+            <Route path="/help" element={<Navigate to="/get-help" replace />} />
             <Route path="/model" element={<Navigate to="/housing-stabilization-model" replace />} />
             <Route path="/housing-stabilization-model" element={<HousingStabilizationModel />} />
             <Route path="/partners" element={<Partners />} />

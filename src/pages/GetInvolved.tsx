@@ -7,40 +7,54 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Users, Building2, Heart, Briefcase, Clock, Hammer, Utensils, BookOpen, CheckCircle } from "lucide-react";
+import { HoneypotField } from "@/components/HoneypotField";
+import { submitContactSubmission, submissionErrorMessage } from "@/lib/forms";
+
+const emptyForm = {
+  name: "",
+  email: "",
+  phone: "",
+  type: "volunteer",
+  interests: [] as string[],
+  message: ""
+};
 
 const GetInvolved = () => {
   const { toast } = useToast();
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    type: "volunteer",
-    interests: [] as string[],
-    message: ""
-  });
+  const [formData, setFormData] = useState(emptyForm);
+  const [honeypot, setHoneypot] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    toast({
-      title: "Thank you for your interest!",
-      description: "We'll be in touch soon to discuss how you can get involved.",
-    });
-    
-    setFormData({
-      name: "",
-      email: "",
-      phone: "",
-      type: "volunteer",
-      interests: [],
-      message: ""
-    });
-    setIsSubmitting(false);
+
+    try {
+      await submitContactSubmission({
+        form: "get-involved",
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        inquiryType: formData.type,
+        interests: formData.interests,
+        message: formData.message,
+        honeypot,
+      });
+
+      toast({
+        title: "Thank you for your interest!",
+        description: "We'll be in touch soon to discuss how you can get involved.",
+      });
+      setFormData(emptyForm);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "That didn't send",
+        description: submissionErrorMessage(error),
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const toggleInterest = (interest: string) => {
@@ -161,7 +175,8 @@ const GetInvolved = () => {
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="bg-card rounded-2xl p-8 shadow-medium border border-border">
+            <form onSubmit={handleSubmit} className="relative bg-card rounded-2xl p-8 shadow-medium border border-border">
+              <HoneypotField id="get-involved-website" value={honeypot} onChange={setHoneypot} />
               <div className="space-y-6">
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
