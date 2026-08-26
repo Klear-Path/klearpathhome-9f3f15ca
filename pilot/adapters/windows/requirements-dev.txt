@@ -1,0 +1,2 @@
+# Test dependencies. The unit suite needs only pytest and runs on any platform.
+pytest>=7.4

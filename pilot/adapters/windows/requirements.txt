@@ -1,0 +1,18 @@
+# Runtime dependencies for the KlearFlow Pilot Windows operator lane.
+#
+# Nothing here is needed to *import* the package, run the unit suite, or
+# introspect the adapter — all of that works on any platform with the standard
+# library alone. These are required only to drive a real Windows desktop.
+
+# Native UI Automation. Wraps the IUIAutomation COM interfaces via comtypes.
+# Chosen over pywinauto because this lane needs the raw UIA element/pattern
+# model, not a second automation framework with its own control abstractions
+# layered on top; and over hand-rolled comtypes because the IUIAutomation type
+# library generation is substantial, error-prone boilerplate.
+# Windows only; pulls in comtypes.
+uiautomation>=2.0.18 ; sys_platform == "win32"
+
+# Optional: screenshot evidence. Without it, capabilities() reports
+# screenshots=False and screenshot actions fail cleanly with
+# UNSUPPORTED_OPERATION rather than crashing.
+Pillow>=10.0.0 ; sys_platform == "win32"
