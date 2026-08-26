@@ -50,6 +50,7 @@ from .errors import (
 )
 from .keyboard import Chord, MOD_ALT, MOD_CTRL, MOD_SHIFT, MOD_WIN
 from .model import (
+    DIALOG_CLASS_NAMES,
     PATTERN_EXPAND_COLLAPSE,
     PATTERN_INVOKE,
     PATTERN_LEGACY_IACCESSIBLE,
@@ -65,6 +66,11 @@ from .model import (
 
 user32 = ctypes.WinDLL("user32", use_last_error=True)
 kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+advapi32 = ctypes.WinDLL("advapi32", use_last_error=True)
+
+
+class _SID_AND_ATTRIBUTES(ctypes.Structure):
+    _fields_ = [("Sid", ctypes.c_void_p), ("Attributes", wintypes.DWORD)]
 
 _ENUM_PROC = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
 
@@ -130,6 +136,31 @@ def _declare_prototypes() -> None:
     kernel32.QueryFullProcessImageNameW.restype = wintypes.BOOL
     kernel32.GetCurrentThreadId.argtypes = []
     kernel32.GetCurrentThreadId.restype = wintypes.DWORD
+    kernel32.GetCurrentProcess.argtypes = []
+    kernel32.GetCurrentProcess.restype = wintypes.HANDLE
+
+    user32.GetWindow.argtypes = [wintypes.HWND, wintypes.UINT]
+    user32.GetWindow.restype = wintypes.HWND
+    user32.IsWindowEnabled.argtypes = [wintypes.HWND]
+    user32.IsWindowEnabled.restype = wintypes.BOOL
+    # GetWindowLongPtrW is 64-bit only; the 32-bit build exposes GetWindowLongW.
+    _get_long = getattr(user32, "GetWindowLongPtrW", None) or user32.GetWindowLongW
+    _get_long.argtypes = [wintypes.HWND, ctypes.c_int]
+    _get_long.restype = ctypes.c_ssize_t
+    if not hasattr(user32, "GetWindowLongPtrW"):
+        user32.GetWindowLongPtrW = _get_long
+
+    advapi32.OpenProcessToken.argtypes = [wintypes.HANDLE, wintypes.DWORD,
+                                          ctypes.POINTER(wintypes.HANDLE)]
+    advapi32.OpenProcessToken.restype = wintypes.BOOL
+    advapi32.GetTokenInformation.argtypes = [
+        wintypes.HANDLE, ctypes.c_int, ctypes.c_void_p,
+        wintypes.DWORD, ctypes.POINTER(wintypes.DWORD)]
+    advapi32.GetTokenInformation.restype = wintypes.BOOL
+    advapi32.GetSidSubAuthorityCount.argtypes = [ctypes.c_void_p]
+    advapi32.GetSidSubAuthorityCount.restype = ctypes.c_void_p
+    advapi32.GetSidSubAuthority.argtypes = [ctypes.c_void_p, wintypes.DWORD]
+    advapi32.GetSidSubAuthority.restype = ctypes.c_void_p
 
 
 _declare_prototypes()
@@ -167,6 +198,21 @@ MOUSEEVENTF_MIDDLEDOWN = 0x0020
 MOUSEEVENTF_MIDDLEUP = 0x0040
 
 PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
+TOKEN_QUERY = 0x0008
+TokenIntegrityLevel = 25
+
+#: Integrity-level RIDs, per Windows' SID authority scheme.
+SECURITY_MANDATORY_UNTRUSTED_RID = 0x0000
+SECURITY_MANDATORY_LOW_RID = 0x1000
+SECURITY_MANDATORY_MEDIUM_RID = 0x2000
+SECURITY_MANDATORY_MEDIUM_PLUS_RID = 0x2100
+SECURITY_MANDATORY_HIGH_RID = 0x3000
+SECURITY_MANDATORY_SYSTEM_RID = 0x4000
+
+GW_OWNER = 4
+GWL_EXSTYLE = -20
+WS_EX_DLGMODALFRAME = 0x00000001
+WS_EX_TOPMOST = 0x00000008
 
 #: Virtual-key codes for this lane's canonical named keys (see .keyboard).
 VK_MAP: dict[str, int] = {
@@ -305,6 +351,96 @@ def _process_name(process_id: int) -> str:
         kernel32.CloseHandle(handle)
 
 
+def _rid_to_integrity(rid: int) -> str:
+    """Map a mandatory-label RID onto this lane's integrity vocabulary."""
+    if rid >= SECURITY_MANDATORY_SYSTEM_RID:
+        return "system"
+    if rid >= SECURITY_MANDATORY_HIGH_RID:
+        return "high"
+    if rid >= SECURITY_MANDATORY_MEDIUM_PLUS_RID:
+        return "medium_plus"
+    if rid >= SECURITY_MANDATORY_MEDIUM_RID:
+        return "medium"
+    if rid >= SECURITY_MANDATORY_LOW_RID:
+        return "low"
+    return "untrusted"
+
+
+def _token_integrity(token: int) -> str:
+    """Read a token's integrity level, or "" when it cannot be determined."""
+    size = wintypes.DWORD(0)
+    advapi32.GetTokenInformation(wintypes.HANDLE(token), TokenIntegrityLevel,
+                                 None, 0, ctypes.byref(size))
+    if not size.value:
+        return ""
+    buffer = ctypes.create_string_buffer(size.value)
+    if not advapi32.GetTokenInformation(wintypes.HANDLE(token), TokenIntegrityLevel,
+                                        buffer, size, ctypes.byref(size)):
+        return ""
+    # TOKEN_MANDATORY_LABEL is a SID_AND_ATTRIBUTES; the level lives in the
+    # SID's last sub-authority.
+    label = ctypes.cast(buffer, ctypes.POINTER(_SID_AND_ATTRIBUTES)).contents
+    count_ptr = advapi32.GetSidSubAuthorityCount(label.Sid)
+    if not count_ptr:
+        return ""
+    count = ctypes.cast(count_ptr, ctypes.POINTER(ctypes.c_ubyte)).contents.value
+    if count == 0:
+        return ""
+    rid_ptr = advapi32.GetSidSubAuthority(label.Sid, count - 1)
+    if not rid_ptr:
+        return ""
+    rid = ctypes.cast(rid_ptr, ctypes.POINTER(wintypes.DWORD)).contents.value
+    return _rid_to_integrity(int(rid))
+
+
+def _process_integrity(process_id: int) -> str:
+    """Integrity level of a process, or "" when unreadable.
+
+    Unreadable is a meaningful answer, not a failure: being unable to open a
+    process token is itself a common symptom of an integrity boundary, and the
+    guard layer treats "" as suspicious rather than equal.
+    """
+    if not process_id:
+        return ""
+    handle = kernel32.OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, False,
+                                  process_id)
+    if not handle:
+        return ""
+    token = wintypes.HANDLE()
+    try:
+        if not advapi32.OpenProcessToken(handle, TOKEN_QUERY, ctypes.byref(token)):
+            return ""
+        try:
+            return _token_integrity(token.value)
+        finally:
+            kernel32.CloseHandle(token)
+    finally:
+        kernel32.CloseHandle(handle)
+
+
+def _is_modal_window(hwnd: int) -> bool:
+    """Whether a window looks modal.
+
+    Three signals, any of which is enough: the classic dialog window class, a
+    modal frame extended style, or an owner window that is currently disabled
+    (which is how Windows actually enforces modality).
+    """
+    if _window_class(hwnd).strip().lower() in DIALOG_CLASS_NAMES:
+        return True
+    try:
+        ex_style = user32.GetWindowLongPtrW(wintypes.HWND(hwnd), GWL_EXSTYLE)
+        if int(ex_style) & WS_EX_DLGMODALFRAME:
+            return True
+    except Exception:
+        pass
+    owner = user32.GetWindow(wintypes.HWND(hwnd), GW_OWNER)
+    if owner and not user32.IsWindowEnabled(wintypes.HWND(owner)):
+        # The owner being disabled while this window is up is the definition
+        # of a modal dialog on Win32.
+        return True
+    return False
+
+
 def _window_rect(hwnd: int) -> Rect:
     rect = wintypes.RECT()
     if not user32.GetWindowRect(wintypes.HWND(hwnd), ctypes.byref(rect)):
@@ -333,7 +469,8 @@ def _window_pid(hwnd: int) -> int:
     return int(pid.value)
 
 
-def _describe_window(hwnd: int, *, foreground: int | None = None) -> WindowInfo:
+def _describe_window(hwnd: int, *, foreground: int | None = None,
+                     with_integrity: bool = True) -> WindowInfo:
     pid = _window_pid(hwnd)
     return WindowInfo(
         handle=int(hwnd),
@@ -346,6 +483,10 @@ def _describe_window(hwnd: int, *, foreground: int | None = None) -> WindowInfo:
                                      else _foreground_hwnd())),
         is_minimized=bool(user32.IsIconic(wintypes.HWND(hwnd))),
         is_visible=bool(user32.IsWindowVisible(wintypes.HWND(hwnd))),
+        is_modal=_is_modal_window(hwnd),
+        # Opening a token per window is not free, so enumeration can skip it;
+        # the guard layer falls back to process_integrity() on demand.
+        integrity_level=_process_integrity(pid) if with_integrity else "",
     )
 
 
@@ -367,6 +508,9 @@ class UiaWindowsBackend:
         self._cache_order: list[str] = []
         self._cache_size = element_cache_size
         self._screenshot_backend = self._detect_screenshot_backend()
+        #: Cached because this process's own integrity cannot change while it
+        #: runs, and the guards consult it on every input event.
+        self._own_integrity: str | None = None
 
     # --- capabilities ---------------------------------------------------
 
@@ -394,6 +538,7 @@ class UiaWindowsBackend:
             process_launch=True,
             window_management=True,
             vision=False,
+            integrity_levels=True,
             notes=f"uiautomation={getattr(auto, '__version__', 'unknown')} "
                   f"dpi={self._dpi_mode} "
                   f"screenshots={self._screenshot_backend or 'unavailable (install Pillow)'}",
@@ -455,7 +600,8 @@ class UiaWindowsBackend:
                 # keeps enumeration usable for a planner.
                 if not _window_title(hwnd):
                     continue
-            windows.append(_describe_window(hwnd, foreground=foreground))
+            windows.append(_describe_window(hwnd, foreground=foreground,
+                                            with_integrity=False))
         return windows
 
     def foreground_window(self) -> WindowInfo | None:
@@ -693,6 +839,41 @@ class UiaWindowsBackend:
     def refresh(self, element: ElementSnapshot) -> ElementSnapshot:
         control = self._control_for(element)
         return self._snapshot(control, element.depth, element.window_handle)
+
+    # --- integrity & geometry -------------------------------------------
+
+    def current_integrity(self) -> str:
+        if self._own_integrity is None:
+            token = wintypes.HANDLE()
+            level = ""
+            if advapi32.OpenProcessToken(kernel32.GetCurrentProcess(),
+                                         TOKEN_QUERY, ctypes.byref(token)):
+                try:
+                    level = _token_integrity(token.value)
+                finally:
+                    kernel32.CloseHandle(token)
+            self._own_integrity = level
+        return self._own_integrity
+
+    def process_integrity(self, process_id: int) -> str:
+        return _process_integrity(int(process_id))
+
+    def element_rect(self, element: ElementSnapshot) -> Rect:
+        """Live bounding rectangle, read now rather than recalled.
+
+        Deliberately minimal: one BoundingRectangle read, no pattern probing,
+        no child enumeration. The value of this call is that the gap between
+        reading the geometry and clicking it is as small as it can be.
+        """
+        control = self._control_for(element)
+        try:
+            raw = control.BoundingRectangle
+        except Exception as exc:
+            raise BackendError(
+                f"could not read bounding rectangle: {exc}",
+                details={"element": element.describe()}) from exc
+        return Rect(left=int(raw.left), top=int(raw.top),
+                    right=int(raw.right), bottom=int(raw.bottom))
 
     # --- interaction ----------------------------------------------------
 

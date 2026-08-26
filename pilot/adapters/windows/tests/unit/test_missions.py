@@ -269,6 +269,13 @@ class TestNotepadProofFailsOnBrokenUi:
         assert report.success is False
 
     def test_reports_a_save_dialog_that_never_appears(self, proof_adapter, desktop, target):
+        """ctrl+s that does nothing must fail *at* ctrl+s, not two steps later.
+
+        The mission declares `expect: {window_title: "Save As"}`, so the
+        keystroke step is judged on whether the dialog appeared — not on
+        whether the keystroke was delivered. Delivering input is never proof
+        the application acted on it.
+        """
         def no_dialog(backend):
             app = make_fake_notepad(backend)
             app.key_handlers.pop("ctrl+s")
@@ -277,7 +284,10 @@ class TestNotepadProofFailsOnBrokenUi:
         desktop.launchers["notepad"] = no_dialog
         report = notepad_proof.run(proof_adapter, file_path=target)
         assert report.success is False
-        assert report.steps[-1]["operation"] == "set_text(save_as_filename)"
+        assert report.steps[-1]["operation"] == "send_keys(ctrl+s)"
+        assert report.steps[-1]["error_code"] == "COMPLETION_UNVERIFIED"
+        # Input was dispatched, so a blind retry is not offered.
+        assert report.steps[-1]["retryable"] is False
 
     def test_report_serialises_for_a_mission_log(self, proof_adapter, target):
         import json

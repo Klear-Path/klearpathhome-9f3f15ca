@@ -221,6 +221,42 @@ class ElementSnapshot:
         return " ".join(bits)
 
 
+#: Window classes Windows uses for dialogs. ``#32770`` is the classic dialog
+#: class; the others are the modern XAML / task-dialog hosts.
+DIALOG_CLASS_NAMES = frozenset({
+    "#32770",
+    "taskdialog",
+    "credential dialog xaml host",
+    "xamlexplorerhostislandwindow",
+})
+
+#: Processes that host UAC consent UI. Interacting with these is refused
+#: outright — see :class:`~.errors.UacPromptDetected`.
+UAC_PROCESS_NAMES = frozenset({
+    "consent.exe",
+    "credentialuibroker.exe",
+})
+
+#: Windows integrity levels, lowest to highest. Comparing by index is what
+#: makes an elevation *mismatch* detectable rather than merely observable.
+INTEGRITY_ORDER = ("untrusted", "low", "medium", "medium_plus", "high", "system")
+
+
+def integrity_rank(level: str | None) -> int:
+    """Numeric rank of an integrity level, or -1 when unknown.
+
+    Unknown ranks -1 so an unreadable target never compares as *higher* than
+    this process and trip a spurious elevation error; callers test for -1
+    explicitly when "could not determine" is itself significant.
+    """
+    if not level:
+        return -1
+    try:
+        return INTEGRITY_ORDER.index(str(level).strip().lower())
+    except ValueError:
+        return -1
+
+
 @dataclass(frozen=True)
 class WindowInfo:
     """A top-level window."""
@@ -234,10 +270,34 @@ class WindowInfo:
     is_foreground: bool = False
     is_minimized: bool = False
     is_visible: bool = True
+    #: True when the window is modal or dialog-shaped. Drives the
+    #: unexpected-modal guard.
+    is_modal: bool = False
+    #: Windows integrity level of the owning process, or "" when unreadable.
+    integrity_level: str = ""
+
+    @property
+    def is_dialog_class(self) -> bool:
+        return (self.class_name or "").strip().lower() in DIALOG_CLASS_NAMES
+
+    @property
+    def is_uac_prompt(self) -> bool:
+        return (self.process_name or "").strip().lower() in UAC_PROCESS_NAMES
+
+    @property
+    def identity(self) -> tuple[int, int, str]:
+        """Handle + process identity, for before/after comparison.
+
+        The process half is what matters for focus-theft detection: an
+        application legitimately moving focus between its own windows is a
+        different event from another process stealing it.
+        """
+        return (self.handle, self.process_id, self.process_name or "")
 
     def to_dict(self) -> dict[str, Any]:
         payload = asdict(self)
         payload["rect"] = self.rect.to_dict()
+        payload["is_dialog_class"] = self.is_dialog_class
         return payload
 
 
@@ -302,6 +362,10 @@ __all__ = [
     "Rect",
     "ElementSnapshot",
     "WindowInfo",
+    "DIALOG_CLASS_NAMES",
+    "UAC_PROCESS_NAMES",
+    "INTEGRITY_ORDER",
+    "integrity_rank",
     "normalize_role",
     "flatten",
     "summarize_tree",

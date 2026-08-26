@@ -98,6 +98,12 @@ class Selector:
     onscreen_only: bool = True
     focusable_only: bool = False
     max_depth: int | None = None
+    #: Ancestry scope. When set, only descendants of the element matching this
+    #: (nested) selector are considered. This is the "scoped ancestry" half of
+    #: the resolution rule: "the Save button *in the Save As dialog*" is a
+    #: different question from "any Save button on the desktop", and without a
+    #: scope the two are indistinguishable.
+    within: "Selector | None" = None
     #: When set, pick the Nth match in document order instead of the best-scoring
     #: one. An explicit escape hatch for genuinely repeated controls; using it
     #: means giving up ranking, so it is never the default.
@@ -145,7 +151,8 @@ class Selector:
         unknown = set(raw) - {
             "name", "name_match", "role", "control_type", "automation_id",
             "class_name", "value", "value_match", "requires_patterns",
-            "enabled_only", "onscreen_only", "focusable_only", "max_depth", "index",
+            "enabled_only", "onscreen_only", "focusable_only", "max_depth",
+            "index", "within",
         }
         if unknown:
             raise InvalidArguments(
@@ -171,6 +178,8 @@ class Selector:
             focusable_only=bool(raw.get("focusable_only", False)),
             max_depth=raw.get("max_depth"),
             index=raw.get("index"),
+            within=(cls.from_mapping(raw["within"])
+                    if raw.get("within") is not None else None),
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -188,6 +197,7 @@ class Selector:
             "focusable_only": self.focusable_only,
             "max_depth": self.max_depth,
             "index": self.index,
+            "within": self.within.to_dict() if self.within else None,
         }
 
     def describe(self) -> str:
@@ -280,44 +290,228 @@ def find_all(root: ElementSnapshot, selector: Selector) -> list[Match]:
     return matches
 
 
-def resolve_one(root: ElementSnapshot, selector: Selector, *,
-                require_unique: bool = False) -> ElementSnapshot:
-    """Resolve ``selector`` to exactly one element.
+#: Resolution tiers, strongest identification first. The ordering *is* the
+#: "AutomationId first, exact role/name second" rule — it is applied, not
+#: merely documented, and the tier that fired is recorded in evidence so a
+#: mission log shows how weakly a control was identified.
+TIER_AUTOMATION_ID = "automation_id"
+TIER_EXACT_ROLE_NAME = "exact_role_name"
+TIER_RELAXED_NAME = "relaxed_name"
+TIER_STRUCTURAL = "structural"
 
-    Raises :class:`ElementNotFound` when nothing matches. With
-    ``require_unique`` the caller refuses to guess: any tie at the top score
-    raises :class:`AmbiguousSelector` listing the candidates, so a planner can
-    disambiguate instead of silently acting on the wrong control.
+#: Strongest to weakest. ``min_tier`` is checked against this order.
+TIER_ORDER = (TIER_AUTOMATION_ID, TIER_EXACT_ROLE_NAME,
+              TIER_RELAXED_NAME, TIER_STRUCTURAL)
+
+_EXACT_NAME_MODES = {MatchMode.EXACT, MatchMode.IEQUALS}
+
+
+@dataclass(frozen=True)
+class Resolution:
+    """A resolved element plus how confidently it was identified."""
+
+    element: ElementSnapshot
+    tier: str
+    #: Every element that matched at the winning tier. Length 1 unless the
+    #: caller explicitly opted out of uniqueness or used ``index``.
+    candidates: tuple[ElementSnapshot, ...] = ()
+    #: Non-fatal observations, e.g. an automation-id hit whose name differs
+    #: from what the planner expected.
+    warnings: tuple[str, ...] = ()
+    #: Ancestry scope actually used, if ``within`` was supplied.
+    scope: str = ""
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "tier": self.tier,
+            "candidate_count": len(self.candidates),
+            "warnings": list(self.warnings),
+            "scope": self.scope,
+        }
+
+
+def _construct(fields: dict[str, Any]) -> Selector:
+    """Build a Selector bypassing the at-least-one-criterion check."""
+    instance = object.__new__(Selector)
+    for key in ("name", "name_match", "role", "automation_id", "class_name",
+                "value", "value_match", "requires_patterns", "enabled_only",
+                "onscreen_only", "focusable_only", "max_depth", "index", "within"):
+        object.__setattr__(instance, key, fields.get(key))
+    if instance.requires_patterns is None:
+        object.__setattr__(instance, "requires_patterns", ())
+    else:
+        object.__setattr__(instance, "requires_patterns",
+                           tuple(instance.requires_patterns))
+    return instance
+
+
+def build_tiers(selector: Selector) -> list[tuple[str, Selector]]:
+    """Decompose a selector into ordered resolution attempts.
+
+    Structural criteria (role, class, patterns, state filters, value) apply at
+    every tier; only the *identifying* criterion changes. When a selector
+    carries both an automation id and a name, the name tier remains as a
+    fallback — an app whose automation ids change should degrade to name
+    matching visibly rather than failing outright.
     """
-    matches = find_all(root, selector)
-    if not matches:
-        raise ElementNotFound(
-            f"no element matched {selector.describe()}",
-            details={
-                "selector": selector.to_dict(),
-                "searched_elements": sum(1 for _ in root.walk()),
-                "near_misses": _near_misses(root, selector),
-            },
+    base: dict[str, Any] = selector.to_dict()
+    base["role"] = selector.role
+    base["requires_patterns"] = selector.requires_patterns
+    base["within"] = selector.within
+    base["name"] = None
+    base["automation_id"] = None
+
+    tiers: list[tuple[str, Selector]] = []
+    if selector.automation_id is not None:
+        tiers.append((TIER_AUTOMATION_ID,
+                      _construct({**base, "automation_id": selector.automation_id})))
+    if selector.name is not None:
+        tier = (TIER_EXACT_ROLE_NAME if selector.name_match in _EXACT_NAME_MODES
+                else TIER_RELAXED_NAME)
+        tiers.append((tier, _construct({**base, "name": selector.name,
+                                        "name_match": selector.name_match})))
+    if not tiers:
+        # No identifying criterion: role / class / pattern only. Legitimate
+        # when it resolves uniquely (Notepad's single Document control), and
+        # rejected below when it does not.
+        tiers.append((TIER_STRUCTURAL, _construct(base)))
+    return tiers
+
+
+def _dedupe(matches: list[Match]) -> list[Match]:
+    """Collapse duplicates that overlapping ancestry scopes can produce."""
+    seen: set[str] = set()
+    unique: list[Match] = []
+    for match in matches:
+        if match.element.runtime_id in seen:
+            continue
+        seen.add(match.element.runtime_id)
+        unique.append(match)
+    return unique
+
+
+def _scope_roots(root: ElementSnapshot, selector: Selector,
+                 *, require_unique: bool) -> tuple[list[ElementSnapshot], str]:
+    """Resolve ``selector.within`` to the subtrees to search."""
+    if selector.within is None:
+        return [root], ""
+    scope = resolve(root, selector.within, require_unique=require_unique)
+    return [scope.element], scope.element.describe()
+
+
+def resolve(root: ElementSnapshot, selector: Selector, *,
+            require_unique: bool = True,
+            min_tier: str | None = None) -> Resolution:
+    """Resolve ``selector`` to exactly one element, tier by tier.
+
+    Tiers are tried strongest-first. The *first tier that matches anything*
+    decides the outcome: if it matched more than one element, that is an
+    ambiguity to report, not a field to break with a tie-breaker. Falling
+    through to a weaker tier because a stronger one was ambiguous would defeat
+    the point of ordering them.
+
+    ``require_unique`` defaults to **True**. Silently acting on the
+    highest-scoring of several indistinguishable controls is how automation
+    clicks the wrong button, so the caller must opt *out* of safety rather
+    than into it.
+
+    ``min_tier`` refuses identification weaker than the named tier — pass
+    ``"automation_id"`` to forbid a silent fallback to name matching.
+    """
+    if min_tier is not None and min_tier not in TIER_ORDER:
+        raise InvalidArguments(
+            f"unknown min_tier {min_tier!r}",
+            details={"min_tier": min_tier, "supported": list(TIER_ORDER)},
         )
-    if selector.index is not None:
-        if selector.index >= len(matches):
-            raise ElementNotFound(
-                f"selector index {selector.index} out of range "
-                f"({len(matches)} match(es))",
-                details={"selector": selector.to_dict(), "match_count": len(matches)},
+
+    scopes, scope_description = _scope_roots(root, selector,
+                                             require_unique=require_unique)
+    tiers = build_tiers(selector)
+    allowed = TIER_ORDER[:TIER_ORDER.index(min_tier) + 1] if min_tier else TIER_ORDER
+
+    attempted: list[dict[str, Any]] = []
+    for tier_name, tier_selector in tiers:
+        if tier_name not in allowed:
+            attempted.append({"tier": tier_name, "skipped": "weaker than min_tier"})
+            continue
+        matches = _dedupe([m for scope in scopes
+                           for m in find_all(scope, tier_selector)])
+        attempted.append({"tier": tier_name, "match_count": len(matches)})
+        if not matches:
+            continue
+
+        if selector.index is not None:
+            ordered = sorted(matches, key=lambda m: m.order)
+            if selector.index >= len(ordered):
+                raise ElementNotFound(
+                    f"selector index {selector.index} out of range "
+                    f"({len(ordered)} match(es) at tier {tier_name!r})",
+                    details={"selector": selector.to_dict(),
+                             "tier": tier_name, "match_count": len(ordered)},
+                )
+            return Resolution(element=ordered[selector.index].element,
+                              tier=tier_name,
+                              candidates=tuple(m.element for m in ordered),
+                              warnings=("index used: ranking bypassed",),
+                              scope=scope_description)
+
+        if len(matches) > 1 and require_unique:
+            raise AmbiguousSelector(
+                f"{len(matches)} elements matched {selector.describe()} at "
+                f"tier {tier_name!r}; refusing to guess",
+                details={
+                    "selector": selector.to_dict(),
+                    "tier": tier_name,
+                    "match_count": len(matches),
+                    "candidates": [m.element.to_dict(include_children=False)
+                                   for m in matches[:10]],
+                    "hint": "add automation_id, a `within` ancestry scope, "
+                            "or an explicit index to disambiguate",
+                },
             )
-        return matches[selector.index].element
-    if require_unique and len(matches) > 1 and matches[0].score == matches[1].score:
-        tied = [m for m in matches if m.score == matches[0].score]
-        raise AmbiguousSelector(
-            f"{len(tied)} elements tied for {selector.describe()}",
-            details={
-                "selector": selector.to_dict(),
-                "candidates": [m.element.to_dict(include_children=False) for m in tied[:10]],
-                "hint": "add automation_id, role, or index to disambiguate",
-            },
-        )
-    return matches[0].element
+
+        warnings: list[str] = []
+        if (tier_name == TIER_AUTOMATION_ID and selector.name is not None
+                and (matches[0].element.name or "") != selector.name):
+            # The id matched but the label did not. Usually harmless
+            # (localisation), occasionally the sign of a reused id.
+            warnings.append(
+                f"automation_id matched but name is "
+                f"{matches[0].element.name!r}, expected {selector.name!r}")
+        if tier_name != TIER_AUTOMATION_ID and selector.automation_id is not None:
+            warnings.append(
+                f"fell back to {tier_name!r}: automation_id "
+                f"{selector.automation_id!r} not found")
+        if tier_name in (TIER_RELAXED_NAME, TIER_STRUCTURAL):
+            warnings.append(
+                f"weak identification ({tier_name}): no automation id or "
+                "exact name was used")
+        if len(matches) > 1:
+            warnings.append(
+                f"{len(matches)} candidates matched; uniqueness was not required")
+
+        return Resolution(element=matches[0].element, tier=tier_name,
+                          candidates=tuple(m.element for m in matches),
+                          warnings=tuple(warnings), scope=scope_description)
+
+    raise ElementNotFound(
+        f"no element matched {selector.describe()}",
+        details={
+            "selector": selector.to_dict(),
+            "searched_elements": sum(len(list(scope.walk())) for scope in scopes),
+            "tiers_attempted": attempted,
+            "scope": scope_description,
+            "near_misses": _near_misses(scopes[0], selector),
+        },
+    )
+
+
+def resolve_one(root: ElementSnapshot, selector: Selector, *,
+                require_unique: bool = True,
+                min_tier: str | None = None) -> ElementSnapshot:
+    """:func:`resolve`, returning only the element."""
+    return resolve(root, selector, require_unique=require_unique,
+                   min_tier=min_tier).element
 
 
 def _near_misses(root: ElementSnapshot, selector: Selector, *, limit: int = 5) -> list[dict[str, Any]]:
@@ -363,4 +557,9 @@ def _near_misses(root: ElementSnapshot, selector: Selector, *, limit: int = 5) -
     return out
 
 
-__all__ = ["Selector", "MatchMode", "Match", "find_all", "resolve_one"]
+__all__ = [
+    "Selector", "MatchMode", "Match", "Resolution",
+    "find_all", "resolve", "resolve_one", "build_tiers",
+    "TIER_AUTOMATION_ID", "TIER_EXACT_ROLE_NAME", "TIER_RELAXED_NAME",
+    "TIER_STRUCTURAL", "TIER_ORDER",
+]

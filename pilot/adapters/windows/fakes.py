@@ -100,6 +100,10 @@ class FakeApp:
     is_minimized: bool = False
     #: Refuse foreground focus, simulating Windows' foreground lock.
     refuses_focus: bool = False
+    #: Simulated modality. Drives the unexpected-modal guard.
+    is_modal: bool = False
+    #: Simulated Windows integrity level of the owning process.
+    integrity_level: str = "medium"
     #: Chord description (e.g. "ctrl+s") -> handler.
     key_handlers: dict[str, Callable[["FakeApp", "FakeBackend"], None]] = field(default_factory=dict)
     #: Free-form application state the handlers use.
@@ -120,6 +124,7 @@ class FakeApp:
             process_name=self.process_name, class_name=self.class_name,
             rect=self.rect, is_foreground=foreground,
             is_minimized=self.is_minimized, is_visible=self.is_visible,
+            is_modal=self.is_modal, integrity_level=self.integrity_level,
         )
 
 
@@ -146,6 +151,16 @@ class FakeBackend:
         self.slept: float = 0.0
         self._now = 1000.0
         self.launch_failures: dict[str, Exception] = {}
+        #: Simulated integrity level of this (the operator) process.
+        self.own_integrity = "medium"
+        #: Reports the backend can read integrity levels at all.
+        self.supports_integrity = True
+        #: When set, ``element_rect`` offsets the returned rect by (dx, dy).
+        #: Simulates a window moving between discovery and click — the
+        #: multi-monitor / DPI-change case.
+        self.geometry_drift: tuple[int, int] = (0, 0)
+        #: When set, ``element_rect`` raises this instead of answering.
+        self.geometry_error: Exception | None = None
 
     # --- clock ----------------------------------------------------------
 
@@ -211,8 +226,33 @@ class FakeBackend:
             ui_automation=True, keyboard=True, mouse=True,
             screenshots=self.supports_screenshots,
             process_launch=True, window_management=True,
+            integrity_levels=self.supports_integrity,
             notes="deterministic in-memory backend for tests and mission dry-runs",
         )
+
+    # --- integrity & geometry -------------------------------------------
+
+    def current_integrity(self) -> str:
+        self.calls.append(("current_integrity", None))
+        return self.own_integrity
+
+    def process_integrity(self, process_id: int) -> str:
+        self.calls.append(("process_integrity", process_id))
+        for app in self.apps:
+            if app.process_id == process_id:
+                return app.integrity_level
+        return ""
+
+    def element_rect(self, element: ElementSnapshot) -> Rect:
+        """Current geometry, honouring any injected drift."""
+        self.calls.append(("element_rect", element.runtime_id))
+        if self.geometry_error is not None:
+            raise self.geometry_error
+        app = self._owner_of(element.runtime_id)
+        node = app.element(element.runtime_id)
+        dx, dy = self.geometry_drift
+        return Rect(left=node.rect.left + dx, top=node.rect.top + dy,
+                    right=node.rect.right + dx, bottom=node.rect.bottom + dy)
 
     # --- windows --------------------------------------------------------
 
@@ -487,6 +527,7 @@ def _notepad_save_as_dialog(notepad: FakeApp, backend: FakeBackend) -> FakeApp:
         process_id=notepad.process_id, process_name=notepad.process_name,
         root=dialog_root, class_name="#32770", rect=Rect(150, 200, 850, 500),
         state={"owner_handle": notepad.handle},
+        is_modal=True,
     )
 
     def _do_save(app: FakeApp, _node: FakeElement) -> None:
@@ -667,6 +708,54 @@ def make_fake_calculator(backend: FakeBackend) -> FakeApp:
     return app
 
 
+def make_uac_prompt(backend: FakeBackend) -> FakeApp:
+    """A simulated UAC consent prompt on the secure desktop."""
+    return FakeApp(
+        handle=backend.allocate_handle(), title="User Account Control",
+        process_id=backend.allocate_pid(), process_name="consent.exe",
+        class_name="Credential Dialog Xaml Host",
+        root=FakeElement(runtime_id="uac.root", name="User Account Control",
+                         role="window", children=[
+                             FakeElement(runtime_id="uac.yes", name="Yes",
+                                         role="button", patterns=(PATTERN_INVOKE,)),
+                         ]),
+        is_modal=True, integrity_level="system",
+    )
+
+
+def make_elevated_app(backend: FakeBackend, *, title: str = "Elevated Tool") -> FakeApp:
+    """A simulated application running at high integrity."""
+    return FakeApp(
+        handle=backend.allocate_handle(), title=title,
+        process_id=backend.allocate_pid(), process_name="admin_tool.exe",
+        root=FakeElement(runtime_id="elev.root", name=title, role="window",
+                         children=[
+                             FakeElement(runtime_id="elev.ok", name="OK",
+                                         role="button", patterns=(PATTERN_INVOKE,),
+                                         keyboard_focusable=True),
+                         ]),
+        integrity_level="high",
+    )
+
+
+def make_unexpected_dialog(backend: FakeBackend, owner: FakeApp, *,
+                           title: str = "Confirm Save As") -> FakeApp:
+    """The overwrite-confirmation nobody planned for."""
+    return FakeApp(
+        handle=backend.allocate_handle(), title=title,
+        process_id=owner.process_id, process_name=owner.process_name,
+        class_name="#32770",
+        root=FakeElement(runtime_id="confirm.root", name=title, role="window",
+                         children=[
+                             FakeElement(runtime_id="confirm.yes", name="Yes",
+                                         role="button", patterns=(PATTERN_INVOKE,)),
+                             FakeElement(runtime_id="confirm.no", name="No",
+                                         role="button", patterns=(PATTERN_INVOKE,)),
+                         ]),
+        is_modal=True,
+    )
+
+
 def make_desktop() -> FakeBackend:
     """A backend that can launch the simulated stock applications."""
     return FakeBackend(launchers={
@@ -679,4 +768,5 @@ def make_desktop() -> FakeBackend:
 __all__ = [
     "FakeBackend", "FakeApp", "FakeElement",
     "make_fake_notepad", "make_fake_calculator", "make_desktop",
+    "make_uac_prompt", "make_elevated_app", "make_unexpected_dialog",
 ]

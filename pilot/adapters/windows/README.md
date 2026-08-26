@@ -47,7 +47,10 @@ inaccessible UI, a COM explosion — comes back as a `Result` with
 | `contracts.py` | `Action` / `Result`, and `coerce_action` — the seam for the core runtime's own types | yes |
 | `errors.py` | Failure taxonomy with stable `code` and `retryable` | yes |
 | `model.py` | `ElementSnapshot`, `WindowInfo`, `Rect`, role normalisation | yes |
-| `control_selectors.py` | Semantic matching and ranking | yes |
+| `control_selectors.py` | Tiered semantic resolution (AutomationId → exact role/name → structural) | yes |
+| `guards.py` | Elevation, UAC, foreground-identity and unexpected-modal checks | yes |
+| `expectations.py` | Post-condition verification for input operations | yes |
+| `redaction.py` | Secret handling in evidence and error payloads | yes |
 | `keyboard.py` | Chord parsing (`"ctrl+shift+s"` → `Chord`) | yes |
 | `backend.py` | `UiaBackend` protocol + `BackendCapabilities` + `NullBackend` | yes |
 | `operations.py` | Operation registry and handlers | yes |
@@ -96,11 +99,34 @@ Controls are addressed by meaning, never position:
 {"role": "document", "requires_patterns": ["value"]}     # by capability
 ```
 
-`name_match` / `value_match` accept `exact`, `iequals`, `contains`,
-`startswith`, `regex`. Matches are **scored** — automation id outranks name,
-exact name outranks a substring, shallower elements break ties — and ordering
-is deterministic for a given tree. Pass `require_unique: true` to make a
-genuine tie an `AMBIGUOUS_SELECTOR` failure rather than a guess.
+Resolution runs in **tiers**, strongest identification first:
+
+1. `automation_id` — the developer-assigned stable handle
+2. exact / case-insensitive `name` + `role`, optionally scoped by ancestry
+3. relaxed name (`contains`, `startswith`, `regex`)
+4. structural only (role / class / pattern, no identifying text)
+
+The **first tier that matches anything decides the outcome.** If that tier
+matched more than one element, that is an ambiguity to report — not a field to
+break with a tie-breaker. `evidence.resolution.tier` records which tier fired,
+so a mission log shows when identification was weak or fell back.
+
+`require_unique` defaults to **true**: an ambiguous semantic match is rejected
+rather than resolved by ranking. Acting on the highest-scoring of several
+indistinguishable controls is how automation clicks the wrong button, so the
+caller must opt *out* of safety, not into it. Use `within`, `automation_id`, or
+an explicit `index` to disambiguate.
+
+`min_tier: "automation_id"` forbids a silent fallback to name matching — useful
+when an app's automation ids are contractual.
+
+**Ancestry scoping** distinguishes "the Save button *in the Save As dialog*"
+from "any Save button on the desktop":
+
+```python
+{"name": "Save", "role": "button",
+ "within": {"name": "Save As", "role": "window"}}
+```
 
 Unknown selector keys are rejected, so a typo cannot silently widen a search.
 
@@ -109,6 +135,111 @@ matched the name but failed another criterion, each with the reason
 (`disabled`, `offscreen`, `role is 'text', wanted 'button'`). "Found it but it
 was disabled" and "no such control" need different recovery, and a planner
 cannot tell them apart otherwise.
+
+## Hardening rules
+
+These are enforced by the adapter, not left to callers. Each is pinned by a
+test class in `tests/unit/test_hardening.py`.
+
+### Input delivery is not completion
+
+Every input operation reports two separate facts:
+
+```python
+evidence["input_dispatched"]     # the keystroke/click was delivered
+evidence["completion_verified"]  # the intended end state was observed
+```
+
+Without a declared `expect`, the second is `false` and the Result says so —
+nothing downstream can mistake "we pressed the key" for "the thing happened".
+Declaring one makes completion checkable:
+
+```python
+{"operation": "send_keys", "arguments": {
+    "keys": ["ctrl+s"],
+    "expect": {"window_title": "Save As"}}}
+```
+
+`expect` accepts `selector` (+ `value`, `value_match`, `absent`),
+`window_title`, and `window_absent`. It is polled until it holds or the
+action's deadline expires. An unmet expectation fails the action with
+`COMPLETION_UNVERIFIED`.
+
+`set_text` is the exception: it reads the value back through ValuePattern, so
+it verifies completion directly.
+
+### Unexpected modals stop execution
+
+A dialog the action did not declare means the application asked something the
+mission never anticipated. Execution stops with `UNEXPECTED_MODAL` rather than
+pushing more input at whatever is now in front. Declare an expected dialog via
+`expect.window_title`, or set `allow_modals: true` as an explicit escape hatch.
+
+### Foreground identity is checked around every input
+
+Focus moving to a **different process** during an input event means the
+keystrokes may have gone elsewhere: `FOREGROUND_CHANGED`, never retryable,
+`side_effect_possible: true`. Focus moving between windows of the *same*
+process is legitimate (an app opening its own dialog) and handled by the modal
+guard instead.
+
+### Elevation escalates; UAC is never driven
+
+The target's Windows integrity level is compared to this process's **before**
+any input is dispatched. A higher-integrity target yields `ELEVATION_REQUIRED`
+with a remedy naming a human action — no workaround is attempted. A target
+whose integrity cannot be read is recorded as suspicious, not assumed equal.
+
+A detected UAC consent prompt yields `UAC_PROMPT_DETECTED` and stops. This
+adapter has no code path that accepts or dismisses consent UI.
+
+### Coordinate fallbacks re-read geometry
+
+`click_control` re-reads the element's bounding rectangle immediately before
+clicking rather than reusing the rect from discovery. A window that moved,
+resized, or changed monitor between the two is clicked where it *now* is.
+`geometry_tolerance_px` makes excessive drift fatal (`STALE_ELEMENT`) instead.
+
+### Re-discovery before every attempt
+
+`_find_element` re-walks the control tree on every polling attempt. Nothing is
+carried over from a previous attempt, so the adapter never acts on an element
+that has since moved or been destroyed.
+
+### Non-idempotent actions do not blindly retry
+
+`Result.retryable` is the conjunction of two independent facts:
+
+* is the failure transient, **and**
+* is repeating safe — nothing dispatched, or the operation is idempotent?
+
+`error.retry_reasoning` spells out the decision. `type_text`, `send_keys`,
+`invoke_control`, `toggle_control`, `click_*`, and `launch_application` are
+marked non-idempotent; a failure after their input was dispatched reports
+`retryable: false` with `side_effect_possible: true`.
+
+**That combination means the outcome is unknown, not failed.** Re-discover
+state and decide explicitly; do not repeat.
+
+### Evidence may contain secrets
+
+Control values from password-like controls (by name, automation id, or
+`PasswordBox` class) and credential-shaped values anywhere (JWTs, provider key
+prefixes, PEM blocks, URLs with inline credentials) are replaced with
+`<redacted:sensitive>` in evidence and error payloads, including echoed
+arguments. Tree summaries carry no values at all.
+
+Screenshots cannot be redacted after capture, so they are **labelled** rather
+than sanitised: every capture carries `contains_untrusted_pixels: true` and a
+sensitivity note for downstream retention policy. Capture stays opt-in per
+adapter (`capture_screenshots=False` by default).
+
+### Never a process kill
+
+No operation, and no backend method, kills or terminates a process.
+`close_window` uses the accessible Close affordance or `alt+f4`. A window that
+will not close is reported as still present — hanging is a fact to report, not
+a reason to destroy unsaved work.
 
 ## Error codes
 
@@ -127,6 +258,12 @@ cannot tell them apart otherwise.
 | `TIMEOUT` | **yes** | Exceeded `Action.timeout_seconds` |
 | `BACKEND_ERROR` | **yes** | Unclassified COM/UIA fault |
 | `VERIFICATION_FAILED` | no | Action ran, observed end state was wrong |
+| `COMPLETION_UNVERIFIED` | no | Input dispatched, declared post-condition never held |
+| `UNEXPECTED_MODAL` | no | An undeclared dialog appeared; execution stopped |
+| `FOREGROUND_CHANGED` | no | Focus moved to another process during input |
+| `ELEVATION_REQUIRED` | no | Target runs at a higher integrity level |
+| `UAC_PROMPT_DETECTED` | no | Consent prompt on screen; adapter will not drive it |
+| `STALE_ELEMENT` | **yes** | Element moved or vanished between discovery and use |
 | `INTERNAL_ERROR` | no | Unexpected fault, still returned as a `Result` |
 
 ## Safety
@@ -172,6 +309,12 @@ Implement the `UiaBackend` protocol and set `vision=True` in
   interactable children — the signal that UIA alone will not be enough.
 * A composing backend that tries UIA first and falls back to vision per-call is
   a drop-in, because every method takes and returns platform-free types.
+
+## Validation status
+
+`WINDOWS_VALIDATION_MATRIX.md` tracks 14 scenarios against real Windows.
+**No row is marked PASS**: this lane was developed on Linux, so every line of
+`uia_backend.py` is unexecuted. Read it before trusting any Windows behaviour.
 
 ## Testing
 
@@ -263,6 +406,15 @@ in `keyboard.py` where it is unit-tested.
   the backend re-walks once, then reports `ELEMENT_NOT_FOUND`.
 * **Localisation.** Name-based selectors are locale-sensitive. Prefer
   `automation_id`; the proof missions do.
+* **Focus theft inside a single call.** The foreground guard brackets each
+  input call, so a steal that occurs and reverts *within* one `SendInput` is
+  invisible to it. Catching that needs a foreground event hook, which this
+  lane does not install.
+* **UAC detection is a backstop.** Real consent prompts run on a separate
+  secure desktop and are usually not in this session's window list at all. The
+  primary defence is the absence of any code path that drives consent UI.
+* **File Explorer is unvalidated.** See `WINDOWS_VALIDATION_MATRIX.md` row 3;
+  treat it as unsupported until that row is executed.
 * **No vision fallback yet.** Custom-rendered UI (some Electron, games,
   canvas-based apps) exposes no usable patterns. The adapter detects and
   reports this rather than flailing.

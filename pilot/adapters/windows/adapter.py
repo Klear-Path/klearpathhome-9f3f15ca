@@ -31,11 +31,31 @@ from .contracts import Action, Result, coerce_action
 from .errors import (
     PlatformUnavailable,
     UnsupportedOperation,
+    has_side_effect,
     to_error_payload,
 )
 from .evidence import CapturePolicy, capture_screenshot, capture_state
 from .operations import Deadline, OperationContext, OperationOutcome, REGISTRY, get
-from . import safety
+from . import guards, safety
+from .redaction import screenshot_record
+
+
+def _redact_arguments(arguments: Any) -> dict[str, Any]:
+    """Strip credential-shaped values out of an echoed argument payload."""
+    from .redaction import redact_text
+
+    if not isinstance(arguments, dict):
+        return {}
+    cleaned: dict[str, Any] = {}
+    for key, value in arguments.items():
+        if isinstance(value, str):
+            cleaned[key] = redact_text(value)
+        elif isinstance(value, (list, tuple)):
+            cleaned[key] = [redact_text(v) if isinstance(v, str) else v
+                            for v in value]
+        else:
+            cleaned[key] = value
+    return cleaned
 
 
 def default_backend() -> Any:
@@ -135,19 +155,33 @@ class WindowsOperatorAdapter:
         result = Result(action_id=coerced.id, success=False)
         state_before: dict[str, Any] = {}
         screenshots: list[str] = []
+        # Held outside the try so the failure path can consult them even when
+        # the exception fired before they were fully built.
+        spec_for_failure: Any = None
+        guard_records: dict[str, Any] = {}
 
         try:
             spec = get(coerced.operation)
+            spec_for_failure = spec
 
             safety_decision = safety.check(coerced, allow_high_risk=self.allow_high_risk)
             self._assert_backend_supports(spec)
 
             deadline = Deadline(coerced.timeout_seconds, now=self._clock)
-            ctx = OperationContext(action=coerced, backend=self.backend, deadline=deadline)
+            ctx = OperationContext(action=coerced, backend=self.backend,
+                                   deadline=deadline)
+            guard_records = ctx.guard_records
 
             state_before = capture_state(
                 self.backend, spec.before, label="before",
             )
+            # Baseline for the modal and foreground guards. Taken for every
+            # operation that synthesises input, so the guards compare against
+            # the state immediately before the action rather than whatever
+            # they happen to observe later.
+            if spec.synthesises_input:
+                ctx.desktop_before = guards.snapshot_desktop(self.backend)
+                state_before["desktop"] = ctx.desktop_before.to_dict()
             if self.capture_screenshots and spec.before.screenshot:
                 path, err = capture_screenshot(self.backend, label=f"{coerced.id}-before")
                 if path:
@@ -177,11 +211,19 @@ class WindowsOperatorAdapter:
             result.state_after = state_after
             result.stdout = outcome.stdout
             result.screenshots = screenshots
+            if screenshots:
+                # Screenshots cannot be redacted after capture; label them so
+                # downstream storage applies the right retention policy.
+                outcome.evidence.setdefault("screenshot_records", [
+                    screenshot_record(path, label=coerced.id)
+                    for path in screenshots])
             result.evidence = {
                 "operation": coerced.operation,
                 "tool": self.tool,
                 "safety": safety_decision,
                 "backend": self.capabilities().to_dict(),
+                "idempotent": spec.idempotent,
+                **({"guards": ctx.guard_records} if ctx.guard_records else {}),
                 **outcome.evidence,
             }
             result.duration_seconds = round(self._clock() - started, 4)
@@ -191,7 +233,8 @@ class WindowsOperatorAdapter:
             # Every failure — classified OperatorError or unexpected fault —
             # becomes a Result. The mission controller must always get an
             # answer, so nothing escapes this method.
-            return self._failure(coerced, exc, started, state_before, screenshots)
+            return self._failure(coerced, exc, started, state_before, screenshots,
+                                 spec=spec_for_failure, guard_records=guard_records)
 
     def execute_all(self, actions: Sequence[Any], *,
                     stop_on_failure: bool = True) -> list[Result]:
@@ -234,10 +277,56 @@ class WindowsOperatorAdapter:
                          "missing": missing, "operation": spec.name},
             )
 
+    @staticmethod
+    def _resolve_retryable(exc: BaseException, spec: Any) -> tuple[bool, dict[str, Any]]:
+        """Decide whether the mission controller may repeat this action.
+
+        Transience alone is not enough. An error can be perfectly transient
+        *and* have already dispatched a keystroke, and repeating a
+        non-idempotent action in that state does it twice — a second Send, a
+        second Save-over, a toggle flipped back. So the answer is the
+        conjunction of two independent facts:
+
+        * is the failure transient (``error.retryable``), and
+        * is repeating safe — either nothing was dispatched, or the operation
+          is idempotent.
+
+        The reasoning is returned alongside, because "retryable: false" with no
+        explanation is the kind of thing a planner works around badly.
+        """
+        transient = bool(getattr(exc, "retryable", False))
+        side_effect = has_side_effect(exc)
+        idempotent = bool(getattr(spec, "idempotent", True)) if spec else False
+
+        blocked_by_side_effect = side_effect and not idempotent
+        reasoning = {
+            "transient": transient,
+            "side_effect_possible": side_effect,
+            "operation_idempotent": idempotent,
+            "safe_to_repeat": not blocked_by_side_effect,
+        }
+        if blocked_by_side_effect:
+            reasoning["reason"] = (
+                "the operation may already have taken effect and repeating it "
+                "is not idempotent; re-discover state and decide explicitly "
+                "rather than retrying"
+            )
+        elif not transient:
+            reasoning["reason"] = "the failure is not transient; retrying cannot help"
+        else:
+            reasoning["reason"] = "transient failure with no unsafe side effect"
+        return (transient and not blocked_by_side_effect), reasoning
+
     def _failure(self, action: Action, exc: BaseException, started: float,
                  state_before: dict[str, Any],
-                 screenshots: list[str]) -> Result:
+                 screenshots: list[str], *,
+                 spec: Any = None,
+                 guard_records: dict[str, Any] | None = None) -> Result:
         payload = to_error_payload(exc)
+        retryable, retry_reasoning = self._resolve_retryable(exc, spec)
+        payload["retryable"] = retryable
+        payload["retry_reasoning"] = retry_reasoning
+
         state_after: dict[str, Any] = {}
         try:
             # Post-failure state is often the most valuable evidence there is
@@ -248,20 +337,28 @@ class WindowsOperatorAdapter:
         except Exception:
             state_after = {"label": "after_failure", "capture_errors": ["unavailable"]}
 
+        evidence: dict[str, Any] = {
+            "operation": action.operation,
+            "tool": self.tool,
+            # Arguments can carry the text being typed, so they are redacted
+            # on the way into a payload that will be logged.
+            "arguments": _redact_arguments(action.arguments),
+            "idempotent": bool(getattr(spec, "idempotent", True)) if spec else None,
+            "retry_reasoning": retry_reasoning,
+        }
+        if guard_records:
+            evidence["guards"] = guard_records
+
         return Result(
             action_id=action.id,
             success=False,
             state_before=state_before,
             state_after=state_after,
-            evidence={
-                "operation": action.operation,
-                "tool": self.tool,
-                "arguments": dict(action.arguments),
-            },
+            evidence=evidence,
             stderr=payload["message"],
             screenshots=screenshots,
             error=payload,
-            retryable=bool(payload.get("retryable", False)),
+            retryable=retryable,
             duration_seconds=round(self._clock() - started, 4),
         )
 

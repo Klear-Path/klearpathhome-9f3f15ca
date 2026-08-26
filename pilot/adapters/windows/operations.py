@@ -20,16 +20,23 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Sequence
 
 from .contracts import Action
+from . import expectations, guards
 from .errors import (
     ElementNotFound,
     ElementNotInteractable,
     InvalidArguments,
     LaunchFailed,
+    StaleElement,
     TimeoutExpired,
     UnsupportedOperation,
     UnsupportedUi,
     VerificationFailed,
     WindowNotFound,
+)
+from .redaction import (
+    redact_element_payload,
+    redact_text,
+    redact_tree_rows,
 )
 from .evidence import CapturePolicy
 from .keyboard import describe_keys, parse_keys
@@ -45,7 +52,7 @@ from .model import (
     describe_tree_stats,
     summarize_tree,
 )
-from .control_selectors import Selector, find_all, resolve_one
+from .control_selectors import Selector, find_all, resolve, resolve_one
 
 
 class Deadline:
@@ -86,6 +93,11 @@ class OperationContext:
     #: Window the operation resolved to, if any. Drives evidence scoping so
     #: "after" state is captured from the same window as "before".
     window_handle: int | None = None
+    #: Desktop state observed before the handler ran. Set by the adapter so
+    #: the modal and foreground guards have a baseline to compare against.
+    desktop_before: guards.DesktopSnapshot | None = None
+    #: Filled in by the guards, merged into Result.evidence.
+    guard_records: dict[str, Any] = field(default_factory=dict)
 
     def arg(self, name: str, default: Any = None) -> Any:
         return self.action.arg(name, default)
@@ -119,6 +131,15 @@ class OperationSpec:
     #: true. Checked before the handler runs.
     requires: tuple[str, ...] = ()
     read_only: bool = False
+    #: Whether repeating this operation with identical arguments is safe once
+    #: it may already have partially applied. Discovery is idempotent;
+    #: ``set_text`` is (same value, same end state); dispatching input and
+    #: invoking a control are **not** — a second Invoke on a Send button sends
+    #: twice. Drives the ``retryable`` the adapter actually reports.
+    idempotent: bool = True
+    #: Whether this operation synthesises input, and so needs the
+    #: foreground-identity guard around it.
+    synthesises_input: bool = False
 
 
 REGISTRY: dict[str, OperationSpec] = {}
@@ -253,30 +274,42 @@ def _tree_for(ctx: OperationContext, window: WindowInfo | None) -> ElementSnapsh
 
 
 def _find_element(ctx: OperationContext, *, require_patterns: Sequence[str] = (),
-                  key: str = "selector") -> tuple[ElementSnapshot, ElementSnapshot, WindowInfo | None]:
+                  key: str = "selector"):
     """Resolve a selector to an element, retrying until the deadline.
 
-    Returns ``(element, tree_root, window)``. Retrying matters: UI appears
-    asynchronously, and a planner should not have to interleave explicit waits
-    between every step.
+    Returns ``(element, tree_root, window, resolution)``.
+
+    Every attempt re-walks the control tree from scratch — state is
+    re-discovered, never carried over from a previous attempt. That is what
+    makes the polling safe: a cached tree would let the adapter act on an
+    element that has since moved, been disabled, or been destroyed.
+
+    ``require_unique`` defaults to **True**. An ambiguous semantic match is
+    rejected rather than resolved by ranking, so the caller must opt out
+    deliberately.
     """
     window = _resolve_window(ctx, required=False)
     selector = _selector_from(ctx, key)
-    require_unique = bool(ctx.arg("require_unique", False))
+    require_unique = bool(ctx.arg("require_unique", True))
+    min_tier = ctx.arg("min_tier")
     poll = float(ctx.arg("poll_interval_seconds", 0.25))
 
     last_error: Exception | None = None
     attempts = 0
     while True:
         attempts += 1
+        # Fresh walk each attempt: re-discover before acting.
         root = _tree_for(ctx, window)
         try:
-            element = resolve_one(root, selector, require_unique=require_unique)
+            resolution = resolve(root, selector, require_unique=require_unique,
+                                 min_tier=min_tier)
         except ElementNotFound as exc:
             last_error = exc
         else:
-            _assert_usable(element, require_patterns, selector)
-            return element, root, window
+            _assert_usable(resolution.element, require_patterns, selector)
+            ctx.guard_records["resolution"] = {
+                **resolution.to_dict(), "attempts": attempts}
+            return resolution.element, root, window, resolution
 
         if ctx.deadline.expired:
             # Surface the selector diagnosis, not a bare timeout: the near-miss
@@ -312,6 +345,141 @@ def _assert_usable(element: ElementSnapshot, require_patterns: Sequence[str],
                 "fallback": "coordinate click via click_control, or vision backend",
             },
         )
+
+
+def _expectation(ctx: OperationContext) -> "expectations.Expectation | None":
+    return expectations.Expectation.from_mapping(ctx.arg("expect"))
+
+
+def _guarded_input(ctx: OperationContext, dispatch, *, context: str,
+                   window: WindowInfo | None) -> dict[str, Any]:
+    """Run an input-dispatching callable inside the safety guards.
+
+    The ordering matters and is the whole point:
+
+    1. **Before**: refuse to act across an integrity boundary, or while a UAC
+       prompt is up. Both are conditions no retry can clear, so they are
+       caught before any input is synthesised rather than after.
+    2. **Dispatch**: the actual keystroke / click.
+    3. **After**: check foreground identity, then check for undeclared
+       dialogs, then evaluate the declared post-condition.
+
+    Failures raised after step 2 carry ``side_effect_possible``, because the
+    input really was delivered — the adapter uses that to decide whether the
+    action may be retried at all.
+    """
+    expectation = _expectation(ctx)
+    allow_modals = bool(ctx.arg("allow_modals", False))
+    before = ctx.desktop_before or guards.snapshot_desktop(ctx.backend)
+
+    guards.check_uac(before)
+    elevation = guards.check_elevation(ctx.backend, window or before.foreground)
+    ctx.guard_records["elevation"] = elevation
+
+    dispatch()
+
+    settle = float(ctx.arg("settle_seconds", 0.1))
+    if settle > 0:
+        ctx.backend.sleep(settle)
+
+    after = guards.snapshot_desktop(ctx.backend)
+    guards.check_uac(after)
+
+    try:
+        ctx.guard_records["foreground"] = guards.check_foreground_stable(
+            before, after, context=context)
+    except Exception as exc:
+        # Focus was stolen mid-input. The dispatch already happened, so this is
+        # explicitly a side-effecting failure.
+        setattr(exc, "side_effect_possible", True)
+        raise
+
+    expected_titles = expectation.expected_window_titles() if expectation else ()
+    try:
+        ctx.guard_records["modal"] = guards.check_no_unexpected_modal(
+            before, after, expected_titles=expected_titles,
+            allow_modals=allow_modals, context=context)
+    except Exception as exc:
+        setattr(exc, "side_effect_possible", True)
+        raise
+
+    outcome = expectations.verify(
+        expectation, backend=ctx.backend, deadline=ctx.deadline,
+        window_handle=window.handle if window else None,
+        poll_interval=float(ctx.arg("poll_interval_seconds", 0.2)),
+        context=context)
+    expectations.require(outcome, expectation, context=context)
+
+    # The load-bearing distinction: input was dispatched, and *separately*,
+    # whether the intended end state was confirmed. Without a declared
+    # expectation the second is simply unknown, and says so.
+    record = {
+        "input_dispatched": True,
+        "completion_verified": bool(expectation) and outcome.satisfied,
+        "expectation": expectation.to_dict() if expectation else None,
+        "expectation_outcome": outcome.to_dict(),
+    }
+    if not expectation:
+        record["completion_note"] = (
+            "no post-condition was declared; input delivery is confirmed but "
+            "the application's response is unverified. Pass `expect` to make "
+            "completion checkable."
+        )
+    ctx.guard_records.update(record)
+    return record
+
+
+def _fresh_rect(ctx: OperationContext, element: ElementSnapshot):
+    """Re-read an element's geometry immediately before a coordinate click.
+
+    The rect captured during discovery is already stale by the time a decision
+    has been made about it: the window may have moved, been resized, or
+    changed monitor — and on a multi-monitor or mixed-DPI desktop the same
+    logical control can sit at completely different physical coordinates from
+    one moment to the next. Clicking remembered coordinates is how a fallback
+    hits the wrong window.
+    """
+    try:
+        current = ctx.backend.element_rect(element)
+    except Exception as exc:
+        raise StaleElement(
+            f"could not re-read geometry for {element.describe()}: "
+            f"{type(exc).__name__}: {exc}",
+            details={"element": redact_element_payload(
+                element.to_dict(include_children=False))},
+        ) from exc
+
+    if current is None or current.is_empty:
+        raise UnsupportedUi(
+            f"element has no clickable bounding rectangle at click time: "
+            f"{element.describe()}",
+            details={"element": redact_element_payload(
+                element.to_dict(include_children=False)),
+                     "discovered_rect": element.rect.to_dict(),
+                     "current_rect": current.to_dict() if current else None},
+        )
+
+    moved = (abs(current.left - element.rect.left)
+             + abs(current.top - element.rect.top))
+    resized = (abs(current.width - element.rect.width)
+               + abs(current.height - element.rect.height))
+    tolerance = int(ctx.arg("geometry_tolerance_px", 0))
+    record = {
+        "discovered_rect": element.rect.to_dict(),
+        "click_rect": current.to_dict(),
+        "moved_px": moved,
+        "resized_px": resized,
+        "refreshed_before_click": True,
+    }
+    if tolerance and (moved > tolerance or resized > tolerance):
+        raise StaleElement(
+            f"element moved {moved}px and resized {resized}px between "
+            f"discovery and click, exceeding the {tolerance}px tolerance",
+            details={**record, "element": redact_element_payload(
+                element.to_dict(include_children=False))},
+        )
+    ctx.guard_records["geometry"] = record
+    return current
 
 
 # ==========================================================================
@@ -446,11 +614,11 @@ def _op_get_control_tree(ctx: OperationContext) -> OperationOutcome:
         "window": window.to_dict() if window else None,
         "root": root.to_dict(include_children=False),
         "stats": stats,
-        "elements": summarize_tree(root, limit=limit),
+        "elements": redact_tree_rows(summarize_tree(root, limit=limit)),
         "truncated": stats["total_elements"] > limit,
     }
     if include_full:
-        evidence["full_tree"] = root.to_dict()
+        evidence["full_tree"] = redact_element_payload(root.to_dict())
 
     if stats["interactable_elements"] == 0 and stats["total_elements"] <= 2:
         # A window whose entire tree is one opaque node is the classic
@@ -477,7 +645,8 @@ def _op_find_controls(ctx: OperationContext) -> OperationOutcome:
     matches = find_all(root, selector)
     limit = int(ctx.arg("limit", 20))
     rows = [
-        {**m.element.to_dict(include_children=False), "score": m.score, "order": m.order}
+        {**redact_element_payload(m.element.to_dict(include_children=False)),
+         "score": m.score, "order": m.order}
         for m in matches[:limit]
     ]
     return OperationOutcome(
@@ -493,27 +662,30 @@ def _op_find_controls(ctx: OperationContext) -> OperationOutcome:
 
 
 def _op_get_element_state(ctx: OperationContext) -> OperationOutcome:
-    element, root, window = _find_element(ctx)
+    element, root, window, resolution = _find_element(ctx)
     live = ctx.backend.refresh(element)
+    payload = redact_element_payload(live.to_dict(include_children=False))
     return OperationOutcome(
-        stdout=f"{live.describe()} value={live.value!r}",
-        evidence={"element": live.to_dict(include_children=False)},
+        stdout=f"{live.describe()} value={payload.get('value')!r}",
+        evidence={"element": payload, "resolution": resolution.to_dict()},
         window_handle=window.handle if window else None,
     )
 
 
 def _op_wait_for_element(ctx: OperationContext) -> OperationOutcome:
-    element, root, window = _find_element(ctx)
+    element, root, window, resolution = _find_element(ctx)
     return OperationOutcome(
         stdout=f"found {element.describe()} after {ctx.deadline.elapsed:.2f}s",
-        evidence={"element": element.to_dict(include_children=False),
+        evidence={"element": redact_element_payload(
+                      element.to_dict(include_children=False)),
+                  "resolution": resolution.to_dict(),
                   "waited_seconds": round(ctx.deadline.elapsed, 3)},
         window_handle=window.handle if window else None,
     )
 
 
 def _op_invoke_control(ctx: OperationContext) -> OperationOutcome:
-    element, root, window = _find_element(
+    element, root, window, resolution = _find_element(
         ctx, require_patterns=(PATTERN_INVOKE, PATTERN_SELECTION_ITEM,
                                PATTERN_TOGGLE, PATTERN_EXPAND_COLLAPSE,
                                PATTERN_LEGACY_IACCESSIBLE),
@@ -522,59 +694,80 @@ def _op_invoke_control(ctx: OperationContext) -> OperationOutcome:
     # forcing Invoke on everything: invoking a list item is a no-op on some
     # providers, whereas SelectionItem.Select does what the planner meant.
     if element.supports(PATTERN_INVOKE) or element.supports(PATTERN_LEGACY_IACCESSIBLE):
-        ctx.backend.invoke(element)
-        method = "invoke"
+        method, act = "invoke", lambda: ctx.backend.invoke(element)
     elif element.supports(PATTERN_SELECTION_ITEM):
-        ctx.backend.select_item(element)
-        method = "select_item"
+        method, act = "select_item", lambda: ctx.backend.select_item(element)
     elif element.supports(PATTERN_TOGGLE):
-        ctx.backend.toggle(element)
-        method = "toggle"
+        method, act = "toggle", lambda: ctx.backend.toggle(element)
     else:
-        ctx.backend.expand(element, expand=True)
-        method = "expand"
+        method, act = "expand", lambda: ctx.backend.expand(element, expand=True)
 
-    settle = float(ctx.arg("settle_seconds", 0.1))
-    if settle > 0:
-        ctx.backend.sleep(settle)
+    # A pattern invoke is stronger evidence than a synthetic click, but it is
+    # still not proof the application finished responding — so it runs through
+    # the same guards and the same completion accounting.
+    completion = _guarded_input(ctx, act, context=f"{method} on {element.describe()}",
+                                window=window)
 
     return OperationOutcome(
-        stdout=f"{method} -> {element.describe()}",
-        evidence={"element": element.to_dict(include_children=False),
-                  "interaction_method": method},
+        stdout=(f"{method} -> {element.describe()}"
+                + ("" if completion["completion_verified"] else " (completion unverified)")),
+        evidence={"element": redact_element_payload(
+                      element.to_dict(include_children=False)),
+                  "interaction_method": method,
+                  "resolution": resolution.to_dict(),
+                  **completion},
         window_handle=window.handle if window else None,
     )
 
 
 def _op_toggle_control(ctx: OperationContext) -> OperationOutcome:
-    element, root, window = _find_element(ctx, require_patterns=(PATTERN_TOGGLE,))
-    ctx.backend.toggle(element)
+    element, root, window, resolution = _find_element(
+        ctx, require_patterns=(PATTERN_TOGGLE,))
+    completion = _guarded_input(ctx, lambda: ctx.backend.toggle(element),
+                                context=f"toggle {element.describe()}",
+                                window=window)
     after = ctx.backend.refresh(element)
     return OperationOutcome(
         stdout=f"toggled {element.describe()} -> value={after.value!r}",
-        evidence={"element_before": element.to_dict(include_children=False),
-                  "element_after": after.to_dict(include_children=False)},
+        evidence={"element_before": redact_element_payload(
+                      element.to_dict(include_children=False)),
+                  "element_after": redact_element_payload(
+                      after.to_dict(include_children=False)),
+                  "resolution": resolution.to_dict(),
+                  **completion},
         window_handle=window.handle if window else None,
     )
 
 
 def _op_expand_control(ctx: OperationContext) -> OperationOutcome:
-    element, root, window = _find_element(ctx, require_patterns=(PATTERN_EXPAND_COLLAPSE,))
+    element, root, window, resolution = _find_element(
+        ctx, require_patterns=(PATTERN_EXPAND_COLLAPSE,))
     expand = bool(ctx.arg("expand", True))
-    ctx.backend.expand(element, expand=expand)
+    completion = _guarded_input(
+        ctx, lambda: ctx.backend.expand(element, expand=expand),
+        context=f"{'expand' if expand else 'collapse'} {element.describe()}",
+        window=window)
     return OperationOutcome(
         stdout=f"{'expanded' if expand else 'collapsed'} {element.describe()}",
-        evidence={"element": element.to_dict(include_children=False), "expand": expand},
+        evidence={"element": redact_element_payload(
+                      element.to_dict(include_children=False)),
+                  "expand": expand, "resolution": resolution.to_dict(),
+                  **completion},
         window_handle=window.handle if window else None,
     )
 
 
 def _op_select_item(ctx: OperationContext) -> OperationOutcome:
-    element, root, window = _find_element(ctx, require_patterns=(PATTERN_SELECTION_ITEM,))
-    ctx.backend.select_item(element)
+    element, root, window, resolution = _find_element(
+        ctx, require_patterns=(PATTERN_SELECTION_ITEM,))
+    completion = _guarded_input(ctx, lambda: ctx.backend.select_item(element),
+                                context=f"select {element.describe()}",
+                                window=window)
     return OperationOutcome(
         stdout=f"selected {element.describe()}",
-        evidence={"element": element.to_dict(include_children=False)},
+        evidence={"element": redact_element_payload(
+                      element.to_dict(include_children=False)),
+                  "resolution": resolution.to_dict(), **completion},
         window_handle=window.handle if window else None,
     )
 
@@ -584,28 +777,45 @@ def _op_set_text(ctx: OperationContext) -> OperationOutcome:
     if not isinstance(text, str):
         raise InvalidArguments("text must be a string",
                               details={"received_type": type(text).__name__})
-    element, root, window = _find_element(ctx, require_patterns=(PATTERN_VALUE,))
+    element, root, window, resolution = _find_element(
+        ctx, require_patterns=(PATTERN_VALUE,))
 
     verify = bool(ctx.arg("verify", True))
-    ctx.backend.set_value(element, text)
+    try:
+        ctx.backend.set_value(element, text)
+    except Exception as exc:
+        # SetValue can fail having written part of the value. Mark it so a
+        # non-idempotent caller is not told to blindly repeat.
+        setattr(exc, "side_effect_possible", True)
+        raise
     after = ctx.backend.refresh(element)
 
     if verify and (after.value or "") != text:
-        # Goal 12 plus the brief's "must fail if contents are wrong": a set
-        # that silently didn't take is a failure, not a success.
+        # The brief's "must fail if contents are wrong": a set that silently
+        # didn't take is a failure, not a success. Values are redacted here —
+        # this payload lands in mission logs, and the text may be a credential.
         raise VerificationFailed(
             "control value did not match the requested text after set_value",
             details={
-                "expected": text,
-                "actual": after.value,
-                "element": after.to_dict(include_children=False),
+                "expected": redact_text(text),
+                "actual": redact_text(after.value),
+                "element": redact_element_payload(
+                    after.to_dict(include_children=False)),
             },
+            side_effect_possible=True,
         )
 
     return OperationOutcome(
         stdout=f"set text on {element.describe()} ({len(text)} chars)",
-        evidence={"element_before": element.to_dict(include_children=False),
-                  "element_after": after.to_dict(include_children=False),
+        evidence={"element_before": redact_element_payload(
+                      element.to_dict(include_children=False)),
+                  "element_after": redact_element_payload(
+                      after.to_dict(include_children=False)),
+                  "resolution": resolution.to_dict(),
+                  # ValuePattern + read-back *is* a completion check, unlike
+                  # synthesised input: the end state was observed directly.
+                  "input_dispatched": True,
+                  "completion_verified": bool(verify),
                   "verified": verify},
         window_handle=window.handle if window else None,
     )
@@ -618,24 +828,32 @@ def _op_type_text(ctx: OperationContext) -> OperationOutcome:
                               details={"received_type": type(text).__name__})
 
     focused_element: ElementSnapshot | None = None
+    resolution = None
     window: WindowInfo | None = None
     # Focusing a named target first is what makes typing deterministic; without
     # it the keystrokes go wherever focus happens to be.
     if ctx.arg("selector") or ctx.arg("name") or ctx.arg("automation_id"):
-        focused_element, _root, window = _find_element(ctx)
+        focused_element, _root, window, resolution = _find_element(ctx)
         ctx.backend.focus_element(focused_element)
     else:
         window = _resolve_window(ctx, required=False)
 
-    ctx.backend.type_text(text)
+    completion = _guarded_input(ctx, lambda: ctx.backend.type_text(text),
+                                context=f"typing {len(text)} character(s)",
+                                window=window)
 
-    evidence: dict[str, Any] = {"typed_characters": len(text)}
+    evidence: dict[str, Any] = {"typed_characters": len(text), **completion}
+    if resolution is not None:
+        evidence["resolution"] = resolution.to_dict()
     if focused_element is not None:
-        evidence["target_element"] = focused_element.to_dict(include_children=False)
+        evidence["target_element"] = redact_element_payload(
+            focused_element.to_dict(include_children=False))
         after = ctx.backend.refresh(focused_element)
-        evidence["element_after"] = after.to_dict(include_children=False)
+        evidence["element_after"] = redact_element_payload(
+            after.to_dict(include_children=False))
     return OperationOutcome(
-        stdout=f"typed {len(text)} character(s)",
+        stdout=(f"typed {len(text)} character(s)"
+                + ("" if completion["completion_verified"] else " (completion unverified)")),
         evidence=evidence,
         window_handle=window.handle if window else None,
     )
@@ -645,24 +863,29 @@ def _op_send_keys(ctx: OperationContext) -> OperationOutcome:
     chords = parse_keys(ctx.require("keys"))
     window: WindowInfo | None = None
     target: ElementSnapshot | None = None
+    resolution = None
 
     if ctx.arg("selector") or ctx.arg("name") or ctx.arg("automation_id"):
-        target, _root, window = _find_element(ctx)
+        target, _root, window, resolution = _find_element(ctx)
         ctx.backend.focus_element(target)
     else:
         window = _resolve_window(ctx, required=False)
 
-    ctx.backend.send_keys(chords)
-    settle = float(ctx.arg("settle_seconds", 0.1))
-    if settle > 0:
-        ctx.backend.sleep(settle)
+    completion = _guarded_input(ctx, lambda: ctx.backend.send_keys(chords),
+                                context=f"sending {describe_keys(chords)}",
+                                window=window)
 
     evidence: dict[str, Any] = {"keys": [c.to_dict() for c in chords],
-                                "keys_description": describe_keys(chords)}
+                                "keys_description": describe_keys(chords),
+                                **completion}
+    if resolution is not None:
+        evidence["resolution"] = resolution.to_dict()
     if target is not None:
-        evidence["target_element"] = target.to_dict(include_children=False)
+        evidence["target_element"] = redact_element_payload(
+            target.to_dict(include_children=False))
     return OperationOutcome(
-        stdout=f"sent {describe_keys(chords)}",
+        stdout=(f"sent {describe_keys(chords)}"
+                + ("" if completion["completion_verified"] else " (completion unverified)")),
         evidence=evidence,
         window_handle=window.handle if window else None,
     )
@@ -675,29 +898,37 @@ def _op_click_control(ctx: OperationContext) -> OperationOutcome:
     still found by meaning, and only the final press uses pixels. No
     hard-coded coordinates are involved.
     """
-    element, root, window = _find_element(ctx)
-    if element.rect.is_empty:
-        raise UnsupportedUi(
-            f"element has no clickable bounding rectangle: {element.describe()}",
-            details={"element": element.to_dict(include_children=False)},
-        )
-    x, y = element.rect.center
+    element, root, window, resolution = _find_element(ctx)
     button = str(ctx.arg("button", "left")).lower()
     if button not in {"left", "right", "middle"}:
         raise InvalidArguments(f"unsupported mouse button {button!r}",
                                details={"button": button,
                                         "supported": ["left", "right", "middle"]})
     double = bool(ctx.arg("double", False))
-    ctx.backend.click_point(x, y, button=button, double=double)
-    settle = float(ctx.arg("settle_seconds", 0.1))
-    if settle > 0:
-        ctx.backend.sleep(settle)
+
+    # Geometry is re-read here, not reused from discovery. Between resolving a
+    # control and deciding to click it the window can move, resize, or change
+    # monitor — and on a mixed-DPI multi-monitor desktop the same control's
+    # physical coordinates differ per display. Remembered coordinates are how
+    # a fallback clicks the wrong thing.
+    rect = _fresh_rect(ctx, element)
+    x, y = rect.center
+
+    completion = _guarded_input(
+        ctx, lambda: ctx.backend.click_point(x, y, button=button, double=double),
+        context=f"{button} click at ({x},{y}) on {element.describe()}",
+        window=window)
+
     return OperationOutcome(
-        stdout=f"{'double-' if double else ''}{button} click at "
-               f"({x},{y}) on {element.describe()}",
-        evidence={"element": element.to_dict(include_children=False),
+        stdout=(f"{'double-' if double else ''}{button} click at "
+                f"({x},{y}) on {element.describe()}"
+                + ("" if completion["completion_verified"] else " (completion unverified)")),
+        evidence={"element": redact_element_payload(
+                      element.to_dict(include_children=False)),
+                  "resolution": resolution.to_dict(),
                   "point": {"x": x, "y": y}, "button": button, "double": double,
-                  "fallback_used": "coordinate_click"},
+                  "fallback_used": "coordinate_click",
+                  **completion},
         window_handle=window.handle if window else None,
     )
 
@@ -716,13 +947,23 @@ def _op_click_point(ctx: OperationContext) -> OperationOutcome:
                                details={"button": button,
                                         "supported": ["left", "right", "middle"]})
     double = bool(ctx.arg("double", False))
-    ctx.backend.click_point(x, y, button=button, double=double)
+    window = _resolve_window(ctx, required=False)
+
+    completion = _guarded_input(
+        ctx, lambda: ctx.backend.click_point(x, y, button=button, double=double),
+        context=f"raw {button} click at ({x},{y})", window=window)
+
     return OperationOutcome(
-        stdout=f"{'double-' if double else ''}{button} click at ({x},{y})",
+        stdout=(f"{'double-' if double else ''}{button} click at ({x},{y})"
+                + ("" if completion["completion_verified"] else " (completion unverified)")),
         evidence={"point": {"x": x, "y": y}, "button": button, "double": double,
                   "fallback_used": "raw_coordinate_click",
                   "warning": "raw coordinates are display-dependent and not "
-                             "portable across resolutions or DPI settings"},
+                             "portable across resolutions, DPI settings, or "
+                             "monitor arrangements; no element geometry backs "
+                             "this click",
+                  **completion},
+        window_handle=window.handle if window else None,
     )
 
 
@@ -740,9 +981,11 @@ def _op_screenshot(ctx: OperationContext) -> OperationOutcome:
             "screenshot capture unavailable",
             details={"error": error},
         )
+    from .redaction import screenshot_record
+
     return OperationOutcome(
         stdout=f"screenshot -> {path}",
-        evidence={"screenshot": path},
+        evidence={"screenshot": screenshot_record(path, label=label)},
         screenshots=[path],
         window_handle=window.handle if window else None,
     )
@@ -761,8 +1004,11 @@ def _op_close_window(ctx: OperationContext) -> OperationOutcome:
 
     # Prefer a real Close button if one is exposed.
     try:
-        close_button = resolve_one(root, Selector(name="Close", role="button",
-                                                  name_match="iequals"))
+        # Scoped to this window's own subtree: a desktop-wide "Close" search
+        # would happily find another application's close button.
+        close_button = resolve_one(
+            root, Selector(name="Close", role="button", name_match="iequals"),
+            require_unique=False)
     except ElementNotFound:
         close_button = None
 
@@ -816,6 +1062,8 @@ def _register_all() -> None:
         name="launch_application", handler=_op_launch_application,
         description="Start an application (goal 3).",
         requires=("process_launch",),
+        # Launching twice starts a second instance.
+        idempotent=False,
         before=_STANDARD(), after=_STANDARD(),
     ))
     register(OperationSpec(
@@ -852,46 +1100,62 @@ def _register_all() -> None:
         name="invoke_control", handler=_op_invoke_control,
         description="Invoke a button or menu item (goal 7).",
         requires=("ui_automation",), before=_MINIMAL(), after=_MINIMAL(),
+        # A second Invoke on Send, Save, or Delete does it again.
+        idempotent=False, synthesises_input=True,
     ))
     register(OperationSpec(
         name="toggle_control", handler=_op_toggle_control,
         description="Flip a checkbox or toggle button.",
         requires=("ui_automation",), before=_MINIMAL(), after=_MINIMAL(),
+        # Toggling twice returns to the original state — the opposite of a
+        # no-op, and exactly why a blind retry is wrong.
+        idempotent=False, synthesises_input=True,
     ))
     register(OperationSpec(
         name="expand_control", handler=_op_expand_control,
         description="Expand or collapse a menu, combo box, or tree item.",
         requires=("ui_automation",), before=_MINIMAL(), after=_MINIMAL(),
+        # Expand(True) twice lands in the same state.
+        idempotent=True, synthesises_input=True,
     ))
     register(OperationSpec(
         name="select_item", handler=_op_select_item,
         description="Select a list, tab, or tree item.",
         requires=("ui_automation",), before=_MINIMAL(), after=_MINIMAL(),
+        idempotent=True, synthesises_input=True,
     ))
     register(OperationSpec(
         name="set_text", handler=_op_set_text,
         description="Set an edit control's text via ValuePattern (goal 8).",
         requires=("ui_automation",), before=_MINIMAL(), after=_MINIMAL(),
+        # Setting the same value twice yields the same end state.
+        idempotent=True,
     ))
     register(OperationSpec(
         name="type_text", handler=_op_type_text,
         description="Type literal text into the focused or selected control (goal 9).",
         requires=("keyboard",), before=_MINIMAL(), after=_MINIMAL(),
+        # Typing appends: a retry duplicates the text.
+        idempotent=False, synthesises_input=True,
     ))
     register(OperationSpec(
         name="send_keys", handler=_op_send_keys,
         description="Send keyboard chords such as ctrl+s (goal 9).",
         requires=("keyboard",), before=_MINIMAL(), after=_MINIMAL(),
+        # Arbitrary chords have arbitrary effects; never assume repeatable.
+        idempotent=False, synthesises_input=True,
     ))
     register(OperationSpec(
         name="click_control", handler=_op_click_control,
         description="Click a semantically located element's centre (goal 10).",
         requires=("mouse", "ui_automation"), before=_MINIMAL(), after=_MINIMAL(),
+        idempotent=False, synthesises_input=True,
     ))
     register(OperationSpec(
         name="click_point", handler=_op_click_point,
         description="Raw coordinate click; last-resort fallback (goal 10).",
         requires=("mouse",), before=_MINIMAL(), after=_MINIMAL(),
+        idempotent=False, synthesises_input=True,
     ))
     register(OperationSpec(
         name="screenshot", handler=_op_screenshot, read_only=True,
@@ -903,6 +1167,9 @@ def _register_all() -> None:
         name="close_window", handler=_op_close_window,
         description="Close a window via its Close affordance (never a process kill).",
         requires=("window_management",), before=_STANDARD(), after=_STANDARD(),
+        # Closing an already-closed window is harmless, but a second alt+f4
+        # lands on whatever window is behind it.
+        idempotent=False, synthesises_input=True,
     ))
 
 

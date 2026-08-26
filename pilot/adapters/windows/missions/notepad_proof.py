@@ -130,6 +130,10 @@ EDITOR_SELECTOR: dict[str, Any] = {
     "focusable_only": True,
 }
 
+#: The common Save As dialog's window title. Declared to the modal guard so
+#: this expected dialog is distinguished from an unplanned one.
+SAVE_AS_WINDOW_TITLE = "Save As"
+
 SAVE_AS_FILENAME_SELECTOR: dict[str, Any] = {
     "role": "edit",
     "requires_patterns": ["value"],
@@ -190,14 +194,21 @@ def run(adapter: WindowsOperatorAdapter, *,
         return report
 
     # 4. Save: ctrl+s, then drive the Save As dialog by name / automation id.
+    #
+    #    The dialog is *declared* via `expect`. That does two jobs: the
+    #    unexpected-modal guard lets this one through (an undeclared dialog
+    #    would stop the mission), and the step no longer reports success
+    #    merely because the keystroke was delivered — the dialog has to
+    #    actually appear.
     save = act("send_keys",
                {"window_handle": window_handle, "keys": ["ctrl+s"],
-                "settle_seconds": 0.6})
+                "settle_seconds": 0.6,
+                "expect": {"window_title": SAVE_AS_WINDOW_TITLE}})
     if not _record(report, "send_keys(ctrl+s)", save):
         return report
 
     filename_field = act("set_text",
-                         {"window_title": "Save As",
+                         {"window_title": SAVE_AS_WINDOW_TITLE,
                           "selector": SAVE_AS_FILENAME_SELECTOR,
                           "text": target, "verify": True})
     if not _record(report, "set_text(save_as_filename)", filename_field):
@@ -205,11 +216,22 @@ def run(adapter: WindowsOperatorAdapter, *,
 
     # Writing the file is the one genuinely irreversible step, so it is
     # labelled as such rather than hidden behind the permissive default.
+    #
+    # The expectation is that the dialog *closes*. Without it, a Save that
+    # silently failed — or that raised an overwrite prompt — would still be
+    # reported as a successful button press. An overwrite prompt is itself an
+    # undeclared modal, so the guard stops the mission there rather than
+    # leaving a half-finished save looking complete.
     confirm = act("invoke_control",
-                  {"window_title": "Save As",
+                  {"window_title": SAVE_AS_WINDOW_TITLE,
                    "selector": {"name": "Save", "role": "button",
-                                "name_match": "iequals"},
-                   "settle_seconds": 0.8},
+                                "name_match": "iequals",
+                                # Scoped to the dialog: a desktop-wide "Save"
+                                # search could match the editor's own toolbar.
+                                "within": {"name": SAVE_AS_WINDOW_TITLE,
+                                           "role": "window"}},
+                   "settle_seconds": 0.8,
+                   "expect": {"window_absent": SAVE_AS_WINDOW_TITLE}},
                   risk=RiskLevel.MEDIUM, reversible=False)
     if not _record(report, "invoke_control(Save)", confirm):
         return report
@@ -218,8 +240,12 @@ def run(adapter: WindowsOperatorAdapter, *,
     #    Non-fatal: the file is already on disk, and verification is what
     #    decides the mission.
     if close_when_done:
+        # allow_modals: after a successful save there should be no discard
+        # prompt, but some Windows builds still raise one. It is declared
+        # rather than suppressed, and the file is already on disk either way.
         closed = act("close_window",
-                     {"window_handle": window_handle, "settle_seconds": 0.5})
+                     {"window_handle": window_handle, "settle_seconds": 0.5,
+                      "allow_modals": True})
         _record(report, "close_window", closed)
         if not closed.success:
             report.failure = ""  # do not let a stuck window mask verification
@@ -254,5 +280,5 @@ def run(adapter: WindowsOperatorAdapter, *,
 __all__ = [
     "run", "MissionReport", "EXPECTED_TEXT",
     "default_output_path", "read_back",
-    "EDITOR_SELECTOR", "SAVE_AS_FILENAME_SELECTOR",
+    "EDITOR_SELECTOR", "SAVE_AS_FILENAME_SELECTOR", "SAVE_AS_WINDOW_TITLE",
 ]

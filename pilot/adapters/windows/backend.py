@@ -23,7 +23,7 @@ from dataclasses import dataclass, asdict
 from typing import Any, Protocol, Sequence, runtime_checkable
 
 from .keyboard import Chord
-from .model import ElementSnapshot, WindowInfo
+from .model import ElementSnapshot, Rect, WindowInfo
 
 
 @dataclass(frozen=True)
@@ -46,6 +46,9 @@ class BackendCapabilities:
     #: Set by a future vision backend; recorded in evidence so the mission log
     #: shows whether a step used accessibility or pixels.
     vision: bool = False
+    #: Whether the backend can read Windows integrity levels. When False the
+    #: elevation guard cannot run and says so, rather than assuming safety.
+    integrity_levels: bool = False
     notes: str = ""
 
     def to_dict(self) -> dict[str, Any]:
@@ -148,6 +151,31 @@ class UiaBackend(Protocol):
         """Coordinate click. The explicit last-resort path."""
         ...
 
+    # --- integrity & geometry (hardening) --------------------------------
+
+    def current_integrity(self) -> str:
+        """This process's Windows integrity level, or "" if unreadable."""
+        ...
+
+    def process_integrity(self, process_id: int) -> str:
+        """A target process's integrity level, or "" if unreadable.
+
+        Reading another process's token can itself fail across an integrity
+        boundary, so "" means "could not determine" — which the caller must
+        treat as suspicious rather than as equal.
+        """
+        ...
+
+    def element_rect(self, element: ElementSnapshot) -> Rect:
+        """Re-read an element's *current* bounding rectangle.
+
+        Separate from :meth:`refresh` because a coordinate fallback needs
+        geometry captured immediately before the click and nothing else. A
+        full property refresh costs far more and widens the window in which
+        the target can move.
+        """
+        ...
+
     # --- evidence (goal 11) ---------------------------------------------
 
     def screenshot(self, *, window_handle: int | None = None,
@@ -191,7 +219,8 @@ class NullBackend:
 
     # Every protocol method funnels to the same refusal.
     list_windows = foreground_window = focus_window = _fail
-    launch = control_tree = refresh = _fail
+    launch = control_tree = refresh = element_rect = _fail
+    current_integrity = process_integrity = _fail
     invoke = set_value = focus_element = toggle = select_item = expand = _fail
     send_keys = type_text = click_point = _fail
     screenshot = _fail

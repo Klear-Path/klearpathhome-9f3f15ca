@@ -366,16 +366,35 @@ class TestTypeAndKeys:
         assert run(adapter, "type_text", text=None).error["code"] == "INVALID_ARGUMENTS"
 
     def test_send_keys_dispatches_the_chord(self, adapter, backend, notepad):
+        # A chord with no side effect: nothing new appears, so no guard fires.
+        result = run(adapter, "send_keys", window_handle=notepad.handle,
+                     keys=["ctrl+a"])
+        assert result.success, result.error
+        assert "ctrl+a" in backend.keys_sent
+        assert result.evidence["keys_description"] == "ctrl+a"
+
+    def test_undeclared_dialog_stops_execution(self, adapter, backend, notepad):
+        # ctrl+s opens Save As. Undeclared, that is an unexpected modal and
+        # the action must stop rather than press on into an unplanned window.
         result = run(adapter, "send_keys", window_handle=notepad.handle,
                      keys=["ctrl+s"])
-        assert result.success
-        assert "ctrl+s" in backend.keys_sent
-        assert result.evidence["keys_description"] == "ctrl+s"
+        assert result.success is False
+        assert result.error["code"] == "UNEXPECTED_MODAL"
+        assert "Save As" in str(result.error["details"]["unexpected_modals"])
 
-    def test_send_keys_reaches_the_application_handler(self, adapter, backend, notepad):
-        run(adapter, "send_keys", window_handle=notepad.handle, keys=["ctrl+s"])
-        # ctrl+s opens the simulated Save As dialog.
+    def test_declaring_the_dialog_permits_it(self, adapter, backend, notepad):
+        result = run(adapter, "send_keys", window_handle=notepad.handle,
+                     keys=["ctrl+s"], expect={"window_title": "Save As"})
+        assert result.success, result.error
         assert any(w.title == "Save As" for w in backend.apps)
+        assert result.evidence["completion_verified"] is True
+
+    def test_allow_modals_permits_any_dialog(self, adapter, backend, notepad):
+        result = run(adapter, "send_keys", window_handle=notepad.handle,
+                     keys=["ctrl+s"], allow_modals=True)
+        assert result.success, result.error
+        # Dispatched, but nothing was declared, so completion stays unverified.
+        assert result.evidence["completion_verified"] is False
 
     def test_send_keys_accepts_a_bare_string(self, adapter, backend, notepad):
         assert run(adapter, "send_keys", keys="ctrl+a").success
