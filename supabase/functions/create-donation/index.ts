@@ -72,7 +72,7 @@ serve(async (req) => {
         },
       ],
       mode: "payment",
-      success_url: `${safeOrigin}/thank-you`,
+      success_url: `${safeOrigin}/thank-you?amount=${numericAmount}`,
       cancel_url: `${safeOrigin}/donate`,
       submit_type: "donate",
     });
