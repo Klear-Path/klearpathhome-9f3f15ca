@@ -6,7 +6,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import { Mail, Phone, MapPin, Clock, Send } from "lucide-react";
+
+declare global {
+  interface Window {
+    gtag?: (...args: unknown[]) => void;
+  }
+}
 
 const Contact = () => {
   const { toast } = useToast();
@@ -23,15 +30,39 @@ const Contact = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
+
+    const { error } = await supabase.from("contact_submissions").insert({
+      name: formData.name,
+      email: formData.email,
+      phone: formData.phone || null,
+      inquiry_type: formData.inquiryType || null,
+      subject: formData.subject || null,
+      message: formData.message,
+    });
+
+    if (error) {
+      console.error("contact_submissions insert error:", error);
+      toast({
+        title: "Something went wrong",
+        description: "We couldn't send your message. Please try again or email us directly.",
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (typeof window !== "undefined" && typeof window.gtag === "function") {
+      window.gtag("event", "conversion", {
+        // Conversion action: "Contact Form Submitted" (Sign-up goal)
+        send_to: "AW-18192459416/dCsfCKfdze0cEJjN6-JD",
+      });
+    }
+
     toast({
       title: "Message sent!",
       description: "Thank you for reaching out. We'll respond within 2 business days.",
     });
-    
+
     setFormData({
       name: "",
       email: "",

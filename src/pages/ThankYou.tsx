@@ -7,15 +7,23 @@ import { Heart, Home, ArrowRight } from "lucide-react";
 
 declare global {
   interface Window {
-    gtag?: (...args: any[]) => void;
+    gtag?: (...args: unknown[]) => void;
   }
 }
 
 const ThankYou = () => {
   useEffect(() => {
     if (typeof window !== "undefined" && typeof window.gtag === "function") {
+      const params = new URLSearchParams(window.location.search);
+      const amount = parseFloat(params.get("amount") || "");
+
       window.gtag("event", "conversion", {
-        send_to: "AW-18192459416/gQELCOC-tbccEJjN6-JD",
+        // Conversion action recreated 9/3/2026 — the previous one
+        // ("Purchase (Page load thank-you)") was removed from the
+        // Google Ads account, which silently broke this event.
+        send_to: "AW-18192459416/ZnPWCN2d2e0cEJjN6-JD",
+        value: Number.isFinite(amount) && amount > 0 ? amount : undefined,
+        currency: "USD",
       });
     }
   }, []);

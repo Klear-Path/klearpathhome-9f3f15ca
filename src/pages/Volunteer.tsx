@@ -6,7 +6,14 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import { Users, Heart, Hammer, Utensils, BookOpen, Clock, CheckCircle } from "lucide-react";
+
+declare global {
+  interface Window {
+    gtag?: (...args: unknown[]) => void;
+  }
+}
 
 const Volunteer = () => {
   const { toast } = useToast();
@@ -23,7 +30,34 @@ const Volunteer = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    const { error } = await supabase.from("volunteer_submissions").insert({
+      name: formData.name,
+      email: formData.email,
+      phone: formData.phone || null,
+      interests: formData.interests,
+      availability: formData.availability || null,
+      message: formData.message || null,
+    });
+
+    if (error) {
+      console.error("volunteer_submissions insert error:", error);
+      toast({
+        title: "Something went wrong",
+        description: "We couldn't submit your interest form. Please try again or email us directly.",
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (typeof window !== "undefined" && typeof window.gtag === "function") {
+      window.gtag("event", "conversion", {
+        // Conversion action: "Volunteer Form Submitted" (Sign-up goal)
+        send_to: "AW-18192459416/bqcTCKTdze0cEJjN6-JD",
+      });
+    }
+
     toast({
       title: "Thank you for your interest!",
       description: "We'll be in touch soon to discuss volunteer opportunities.",

@@ -2,15 +2,45 @@ import { useState } from "react";
 import { Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { supabase } from "@/integrations/supabase/client";
+
+declare global {
+  interface Window {
+    gtag?: (...args: unknown[]) => void;
+  }
+}
 
 export function EmailCapture() {
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!email) return;
+    setError(false);
+
+    const { error: insertError } = await supabase.from("newsletter_signups").insert({
+      email,
+      first_name: firstName || null,
+    });
+
+    // A duplicate email (unique index) still counts as "on the list" from
+    // the visitor's point of view -- only a real failure should show an error.
+    if (insertError && insertError.code !== "23505") {
+      console.error("newsletter_signups insert error:", insertError);
+      setError(true);
+      return;
+    }
+
+    if (typeof window !== "undefined" && typeof window.gtag === "function") {
+      window.gtag("event", "conversion", {
+        // Conversion action: "Newsletter Signup" (Sign-up goal)
+        send_to: "AW-18192459416/aY4gCKHdze0cEJjN6-JD",
+      });
+    }
+
     setSubmitted(true);
   };
 
@@ -52,7 +82,13 @@ export function EmailCapture() {
 
             {submitted && (
               <p className="text-sm text-primary font-medium mt-4">
-                You’re on the list. More updates coming soon.
+                You're on the list. More updates coming soon.
+              </p>
+            )}
+
+            {error && (
+              <p className="text-sm text-destructive font-medium mt-4">
+                Something went wrong. Please try again in a moment.
               </p>
             )}
 
