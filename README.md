@@ -1,73 +1,35 @@
-# Welcome to your Lovable project
+# Klear Path Home — CANONICAL PRODUCTION REPOSITORY
 
-## Project info
+This repository is the **single source of truth** for the Klear Path Home website.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+- Production domain: https://klearpathhome.org
+- Lovable project: https://lovable.dev/projects/c751391e-f4d3-4557-946a-887eee09ae9c
+- Production branch: `main`
+- Canonical repository: `Klear-Path/klearpathhome-9f3f15ca`
 
-## How can I edit this code?
+## Operating rule
 
-There are several ways of editing your application.
+All website changes — whether made through Lovable, GitHub, ChatGPT, KlearForge, or a local IDE — must land in **this repository**.
 
-**Use Lovable**
+`main` represents production source code. Lovable is the production builder/host and is synchronized with this repository.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+Do **not** make website changes in `Klear-Path/klearpathhome`; that repository is legacy and retained only for history/recovery.
 
-Changes made via Lovable will be committed automatically to this repo.
+## Deployment flow
 
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```
+edit -> Klear-Path/klearpathhome-9f3f15ca -> main -> Lovable sync -> verify -> publish
 ```
 
-**Edit a file directly in GitHub**
+A code change is not considered live until the Lovable production deployment has been verified.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
+## Stack
 
 - Vite
 - TypeScript
 - React
-- shadcn-ui
+- shadcn/ui
 - Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+- Supabase
+- Stripe
+- Google Analytics / Google Ads
