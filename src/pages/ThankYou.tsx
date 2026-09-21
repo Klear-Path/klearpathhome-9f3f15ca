@@ -13,19 +13,23 @@ declare global {
 
 const ThankYou = () => {
   useEffect(() => {
-    if (typeof window !== "undefined" && typeof window.gtag === "function") {
-      const params = new URLSearchParams(window.location.search);
-      const amount = parseFloat(params.get("amount") || "");
+    if (typeof window === "undefined" || typeof window.gtag !== "function") return;
 
-      window.gtag("event", "conversion", {
-        // Conversion action recreated 9/3/2026 — the previous one
-        // ("Purchase (Page load thank-you)") was removed from the
-        // Google Ads account, which silently broke this event.
-        send_to: "AW-18192459416/ZnPWCN2d2e0cEJjN6-JD",
-        value: Number.isFinite(amount) && amount > 0 ? amount : undefined,
-        currency: "USD",
-      });
-    }
+    const params = new URLSearchParams(window.location.search);
+    const amount = parseFloat(params.get("amount") || "");
+    const transactionId = params.get("session_id") || "";
+    const dedupeKey = transactionId ? `google-ads-donation-${transactionId}` : "";
+
+    if (dedupeKey && sessionStorage.getItem(dedupeKey)) return;
+
+    window.gtag("event", "conversion", {
+      send_to: "AW-18192459416/ZnPWCN2d2e0cEJjN6-JD",
+      value: Number.isFinite(amount) && amount > 0 ? amount : undefined,
+      currency: "USD",
+      transaction_id: transactionId,
+    });
+
+    if (dedupeKey) sessionStorage.setItem(dedupeKey, "1");
   }, []);
 
   return (
