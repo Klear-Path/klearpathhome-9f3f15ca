@@ -61,9 +61,9 @@ const Donate = () => {
   return (
     <Layout>
       <Helmet>
-        <title>Donate Today | Give Stability Before the System Asks Questions | Klear Path</title>
-        <meta name="description" content="Support Klear Path with a tax-deductible gift. Your donation funds dignity-first stabilization, workforce readiness, and pathways from crisis to independence." />
-        <meta name="keywords" content="donate to housing stability nonprofit, support housing instability solutions, workforce reintegration nonprofit, homelessness prevention support, dignity-first support" />
+        <title>Donate to Help People Facing Homelessness | Klear Path</title>
+        <meta name="description" content="Donate to help people facing homelessness move toward housing stability, employment, and long-term independence through Klear Path, a 501(c)(3) nonprofit." />
+        <meta name="keywords" content="donate to homeless, donate to the homeless, donate to homeless nonprofit, homelessness donation, housing stability nonprofit, workforce reintegration nonprofit" />
         <link rel="canonical" href="https://klearpathhome.org/donate" />
       </Helmet>
 
@@ -74,10 +74,10 @@ const Donate = () => {
               Secure giving • 501(c)(3) nonprofit • EIN 41-3156622
             </p>
             <h1 className="text-4xl lg:text-6xl font-serif font-bold mb-6">
-              Give Stability Before the System Asks Questions
+              Donate to Help People Facing Homelessness Build Lasting Stability
             </h1>
             <p className="text-xl text-primary-foreground/90 leading-relaxed max-w-3xl mb-8">
-              Klear Path starts with dignity: a meal, a drink, a safe moment, and a path toward housing stability, employment, and long-term independence.
+              Klear Path is a housing stabilization and workforce reintegration nonprofit helping people move from homelessness and housing instability toward stable housing, employment, and long-term independence.
             </p>
             <div className="flex flex-wrap gap-3">
               <a href="#give" data-cta="donation_click"><Button variant="hero" size="xl">Donate Today<ArrowRight className="w-5 h-5" /></Button></a>
