@@ -72,7 +72,7 @@ serve(async (req) => {
         },
       ],
       mode: "payment",
-      success_url: `${safeOrigin}/thank-you?amount=${numericAmount}`,
+      success_url: `${safeOrigin}/thank-you?amount=${encodeURIComponent(numericAmount.toFixed(2))}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${safeOrigin}/donate`,
       submit_type: "donate",
     });
