@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Helmet } from "react-helmet-async";
-import { Phone, CheckCircle2 } from "lucide-react";
+import { Phone, CheckCircle2, Printer } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -700,6 +700,24 @@ const GetHelp = () => {
               Caseworkers and outreach teams: call us directly. We'll take referrals by
               phone and handle the paperwork on our end.
             </p>
+
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <Button asChild size="lg" variant="secondary">
+                <a
+                  href="/klear-path-document-help.pdf"
+                  target="_blank"
+                  rel="noreferrer"
+                  data-cta="get-help-flyer"
+                >
+                  <Printer className="h-4 w-4" aria-hidden="true" />
+                  Print the one-page flyer
+                </a>
+              </Button>
+              <p className="text-sm text-primary-foreground/70">
+                One page, black and white, photocopies cleanly. Post it or hand it out —
+                no permission needed.
+              </p>
+            </div>
           </div>
         </div>
       </section>
