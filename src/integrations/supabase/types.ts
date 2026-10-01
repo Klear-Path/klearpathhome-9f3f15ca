@@ -68,6 +68,7 @@ export type Database = {
       help_requests: {
         Row: {
           county: string | null
+          housing_situation: string | null
           created_at: string
           deadline: string | null
           documents: string[]
@@ -84,6 +85,7 @@ export type Database = {
         }
         Insert: {
           county?: string | null
+          housing_situation?: string | null
           created_at?: string
           deadline?: string | null
           documents?: string[]
@@ -100,6 +102,7 @@ export type Database = {
         }
         Update: {
           county?: string | null
+          housing_situation?: string | null
           created_at?: string
           deadline?: string | null
           documents?: string[]

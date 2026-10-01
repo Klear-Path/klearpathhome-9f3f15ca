@@ -20,36 +20,49 @@ const DOCUMENTS = [
 ] as const;
 
 /**
- * Fees and timelines verified August 2026 against the issuing agencies:
- * PA Department of Health (vital records), PennDOT, SSA, and NPRC. Re-check
- * before relying on these in advertising — agencies change them without notice.
+ * Fees, waivers, and timelines verified October 2026 against the issuing
+ * agencies: PA Department of Health (vital records), PennDOT, SSA, and NPRC.
+ * Re-check before relying on these in advertising — agencies change them
+ * without notice, and the waiver rules in particular are what people act on.
  */
 const COVERAGE = [
   {
     doc: "Certified birth certificate (PA)",
     cost: "$20",
-    time: "Same day in person, 2–3 weeks by mail",
+    waiver:
+      "Waived in full if you're experiencing homelessness — but the form needs an advocate to sign for you. That's where we come in.",
   },
   {
     doc: "Replacement Social Security card",
-    cost: "No fee",
-    time: "About 2 weeks",
+    cost: "Always free",
+    waiver:
+      "No fee, ever. Limited to 3 replacements a year and 10 in a lifetime, with hardship exceptions.",
   },
   {
     doc: "Pennsylvania photo ID",
     cost: "$43.50",
-    time: "Same day at a REAL ID Center, otherwise ~15 business days",
+    waiver:
+      "Free under Act 131 of 2020 if you're experiencing homelessness. You apply in person on form DL-54H and need a letter confirming your address.",
   },
   {
     doc: "REAL ID photo ID",
     cost: "$61.50",
-    time: "Same day at a REAL ID Center, otherwise ~15 business days",
+    waiver:
+      "The $30 REAL ID surcharge is one time. If you don't need to fly or enter a federal building, the standard ID is enough.",
   },
   {
     doc: "DD-214 military discharge",
-    cost: "No fee",
-    time: "2–6 weeks",
+    cost: "Always free",
+    waiver:
+      "No fee from the National Personnel Records Center. We'll file the request with you.",
   },
+];
+
+/** The paperwork barrier this page exists to remove. */
+const ADVOCATES = [
+  "A director of a facility where you're living or receiving services",
+  "A social worker helping you get government services",
+  "An attorney representing you",
 ];
 
 const TRUST = [
@@ -59,7 +72,7 @@ const TRUST = [
   },
   {
     heading: "No screening",
-    body: "No income check, no proof of hardship, no program to enroll in. You need a document, we cover it.",
+    body: "No income check, no proof of hardship, no program to enroll in. You need a document, we help.",
   },
   {
     heading: "A real nonprofit",
@@ -74,6 +87,7 @@ const emptyForm = {
   phone: "",
   email: "",
   county: "",
+  housingSituation: "",
   documents: [] as string[],
   documentsOther: "",
   deadline: "",
@@ -124,14 +138,14 @@ const GetHelp = () => {
 
   const seo = (
     <Helmet>
-      <title>Get Help Replacing Your ID or Birth Certificate | Klear Path</title>
+      <title>Free Birth Certificate & ID Help in PA | We Sign For You | Klear Path</title>
       <meta
         name="description"
-        content="Klear Path pays the fee to replace a lost birth certificate, state ID, Social Security card, or DD-214 for Pennsylvania residents. Free, no income requirement, no screening."
+        content="Pennsylvania waives birth certificate and photo ID fees for people experiencing homelessness, but the forms need an organization to sign. Klear Path is that organization — and we pay the fee where there's no waiver."
       />
       <meta
         name="keywords"
-        content="free birth certificate replacement PA, replace lost ID Pennsylvania, replacement Social Security card help, DD-214 replacement, vital records assistance"
+        content="free birth certificate PA homeless, birth certificate fee waiver Pennsylvania advocate signature, free photo ID DL-54H Act 131, replace lost ID Pennsylvania, replacement Social Security card help, DD-214 replacement"
       />
       <link rel="canonical" href={`${SITE.url}/get-help`} />
     </Helmet>
@@ -182,13 +196,15 @@ const GetHelp = () => {
               Free help · Pennsylvania
             </p>
             <h1 className="mt-5 text-4xl lg:text-5xl font-serif font-bold leading-tight text-balance">
-              Lost your birth certificate, ID, or Social Security card? We'll pay to
-              replace it.
+              Your birth certificate and ID can be replaced for free. You just need
+              someone to sign for you.
             </h1>
             <p className="mt-6 max-w-2xl text-xl text-primary-foreground/90 leading-relaxed">
-              A missing document shouldn't cost you a housing spot, a job, or a
-              benefits appointment. We cover the fee and help you get a certified copy
-              that stays in your hands.
+              Pennsylvania already waives these fees for people experiencing
+              homelessness. Almost nobody uses the waivers, because the forms require a
+              nonprofit, a social worker, or an attorney to vouch for you — and if you're
+              sleeping in your car, you don't have one. We're that organization. Where
+              there's no waiver, we pay the fee.
             </p>
 
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
@@ -213,8 +229,8 @@ const GetHelp = () => {
             <ul className="mt-10 grid gap-x-8 gap-y-2 text-primary-foreground/80 sm:grid-cols-2">
               <li>No cost to you</li>
               <li>No income requirement</li>
-              <li>You keep the document</li>
-              <li>We never need your originals</li>
+              <li>We sign the forms that need an organization</li>
+              <li>You keep every document</li>
             </ul>
           </div>
         </div>
@@ -242,8 +258,95 @@ const GetHelp = () => {
                 exactly what someone in that situation doesn't have.
               </p>
               <p>
-                So that's what we pay for. You keep your copy. When an office loses
-                theirs or can't get to it, yours still works.
+                Here's the part we didn't learn until much later. Our founder spent a
+                stretch sleeping in a tent in the woods, and had no idea any of this was
+                free. Not the birth certificate fee waiver. Not the free PennDOT ID. Not
+                the fact that an organization could sign the form and unlock both. He was
+                paying attention, he was in the middle of it, and nobody ever told him.
+              </p>
+              <p>
+                If he didn't know, most people don't. So this page says it plainly, in one
+                place: the waivers exist, here's exactly what they require, and we'll be
+                the organization that signs. Where there's no waiver, we pay.
+              </p>
+              <p>
+                You keep your copy. When an office loses theirs or can't get to it, yours
+                still works.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* The advocate gap */}
+      <section className="py-16 lg:py-24 border-b border-border">
+        <div className="container-wide section-padding">
+          <div className="max-w-3xl">
+            <h2 className="text-3xl lg:text-4xl font-serif font-semibold text-foreground">
+              Why the waivers go unused
+            </h2>
+            <div className="mt-6 space-y-5 text-lg leading-relaxed text-muted-foreground">
+              <p>
+                Pennsylvania waives the $20 birth certificate fee for anyone experiencing
+                homelessness. It has for years. But the application has a second
+                signature line, and it can only be signed by one of three people:
+              </p>
+            </div>
+
+            <ul className="mt-6 space-y-3">
+              {ADVOCATES.map((advocate) => (
+                <li
+                  key={advocate}
+                  className="flex items-start gap-3 rounded-xl border border-border bg-card px-5 py-4"
+                >
+                  <CheckCircle2
+                    className="mt-0.5 h-5 w-5 shrink-0 text-primary"
+                    aria-hidden="true"
+                  />
+                  <span className="text-foreground">{advocate}</span>
+                </li>
+              ))}
+            </ul>
+
+            <div className="mt-6 space-y-5 text-lg leading-relaxed text-muted-foreground">
+              <p>
+                That person has to attest to who you are and that you're experiencing
+                homelessness, and send a copy of their own photo ID with the form. If you
+                don't already have a caseworker or a lawyer, the waiver may as well not
+                exist. The fee was never really the barrier — the signature was.
+              </p>
+              <p className="font-medium text-foreground">
+                We're a 501(c)(3) that provides these services, so we can sign. That's the
+                whole point of this page. Ask, and we'll fill out our half, attach what the
+                state needs, and tell you exactly where to take it.
+              </p>
+            </div>
+
+            <div className="mt-8 rounded-2xl border border-border bg-secondary p-6">
+              <h3 className="font-serif text-lg font-semibold text-foreground">
+                They also unlock each other, in this order
+              </h3>
+              <ol className="mt-4 space-y-3 text-muted-foreground">
+                <li>
+                  <span className="font-medium text-foreground">1. Birth certificate.</span>{" "}
+                  Proves who you are. Needed for almost everything else.
+                </li>
+                <li>
+                  <span className="font-medium text-foreground">
+                    2. Social Security card.
+                  </span>{" "}
+                  Always free, but SSA wants proof of identity first.
+                </li>
+                <li>
+                  <span className="font-medium text-foreground">3. Photo ID.</span>{" "}
+                  PennDOT asks for proof of identity, your Social Security card, and proof
+                  of address — so it comes last.
+                </li>
+              </ol>
+              <p className="mt-4 leading-relaxed text-muted-foreground">
+                Start in the wrong place and you lose a day to a trip that was never going
+                to work. If you're not sure where you stand, call us before you go
+                anywhere.
               </p>
             </div>
           </div>
@@ -257,6 +360,11 @@ const GetHelp = () => {
             <h2 className="text-3xl lg:text-4xl font-serif font-semibold text-foreground">
               What we cover
             </h2>
+            <p className="mt-3 text-lg leading-relaxed text-muted-foreground">
+              Either the fee gets waived and we sign for you, or there's no waiver and we
+              pay it. Either way your cost is{" "}
+              <span className="font-semibold text-primary">$0</span>.
+            </p>
 
             <div className="mt-7 overflow-hidden rounded-2xl border border-border bg-card shadow-soft">
               <table className="w-full text-left">
@@ -272,19 +380,26 @@ const GetHelp = () => {
                       scope="col"
                       className="hidden px-5 py-3 font-semibold sm:table-cell"
                     >
-                      Typical wait
+                      How it becomes free
                     </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border text-sm">
                   {COVERAGE.map((row) => (
                     <tr key={row.doc}>
-                      <td className="px-5 py-4 font-medium text-foreground">
+                      <td className="px-5 py-4 align-top font-medium text-foreground">
                         {row.doc}
+                        {/* The waiver note is the useful part, so keep it visible on
+                            phones where the third column is hidden. */}
+                        <span className="mt-1 block font-normal text-muted-foreground sm:hidden">
+                          {row.waiver}
+                        </span>
                       </td>
-                      <td className="px-5 py-4 text-muted-foreground">{row.cost}</td>
-                      <td className="hidden px-5 py-4 text-muted-foreground sm:table-cell">
-                        {row.time}
+                      <td className="px-5 py-4 align-top text-muted-foreground">
+                        {row.cost}
+                      </td>
+                      <td className="hidden px-5 py-4 align-top text-muted-foreground sm:table-cell">
+                        {row.waiver}
                       </td>
                     </tr>
                   ))}
@@ -293,10 +408,9 @@ const GetHelp = () => {
             </div>
 
             <p className="mt-4 leading-relaxed text-muted-foreground">
-              Your cost is <span className="font-semibold text-primary">$0</span> for
-              all of it. Fees and processing times are set by the issuing agency and
-              can change — we'll tell you what to expect when we talk. If you need
-              something not listed here, ask anyway.
+              Fees, waivers, and processing times are set by the issuing agency and can
+              change — we'll tell you what to expect when we talk. If you need something
+              not listed here, ask anyway.
             </p>
 
             <div className="mt-6 rounded-2xl border border-primary/30 bg-accent p-6">
@@ -307,13 +421,15 @@ const GetHelp = () => {
                 Under Act 131 of 2020, PennDOT issues a free initial or renewal photo ID
                 to Pennsylvanians experiencing homelessness. You apply in person at a
                 Driver License Center, tell the counter staff you're requesting a free ID
-                due to homeless status, and complete form DL-54H. A letter from a shelter
-                works as proof of address. You'll still need proof of identity and a
-                Social Security card — which is what we're here to help you replace.
+                due to homeless status, and complete form DL-54H. For proof of address,
+                PennDOT accepts a letter on letterhead from the shelter where you're
+                staying or where you pick up mail.
               </p>
               <p className="mt-3 leading-relaxed text-muted-foreground">
-                Ask us anyway. We'll walk you through which office to go to and what to
-                bring, so you don't lose a day to a wasted trip.
+                You'll still need proof of identity and your Social Security card to walk
+                out with it — which is exactly what we help you get first. Tell us where
+                you're staying and we'll work out who needs to write that letter and what
+                else to bring, so you don't lose a day to a wasted trip.
               </p>
             </div>
 
@@ -321,9 +437,12 @@ const GetHelp = () => {
               <p>
                 <span className="font-medium text-foreground">Birth certificates:</span>{" "}
                 $20 for the first copy and $10 for each additional copy ordered at the
-                same time. Ordering online through VitalChek adds a $10 service fee, so
+                same time, with the fee waived entirely for people experiencing
+                homelessness. Ordering online through VitalChek adds a $10 service fee, so
                 we usually order by mail or go in person. In-person requests made before
                 2:30 p.m. at a Vital Records public office are filled the same day.
+                Pennsylvania has a separate fee-waiver form for people who are in foster
+                care or justice-involved — if that's you, say so and we'll use that one.
               </p>
               <p>
                 <span className="font-medium text-foreground">
@@ -411,6 +530,21 @@ const GetHelp = () => {
                   onChange={(e) => update("county", e.target.value)}
                   placeholder="Montgomery, Bucks, Philadelphia…"
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="housingSituation">Where are you staying right now?</Label>
+                <Input
+                  id="housingSituation"
+                  value={form.housingSituation}
+                  onChange={(e) => update("housingSituation", e.target.value)}
+                  placeholder="A shelter, a friend's couch, my car, outside…"
+                  aria-describedby="housing-hint"
+                />
+                <p id="housing-hint" className="text-xs text-muted-foreground">
+                  Optional, and there's no wrong answer. It tells us which fee waiver you
+                  qualify for and who needs to sign — nothing else.
+                </p>
               </div>
 
               <fieldset>
@@ -531,6 +665,34 @@ const GetHelp = () => {
                 </a>
               </p>
             </form>
+          </div>
+        </div>
+      </section>
+
+      {/* Pass it on — the awareness gap is the real barrier, so make the page
+          easy to relay to someone who isn't reading it. */}
+      <section className="py-16 lg:py-20 bg-primary text-primary-foreground">
+        <div className="container-wide section-padding">
+          <div className="max-w-3xl">
+            <h2 className="text-3xl lg:text-4xl font-serif font-semibold">
+              Know someone who needs this? Tell them.
+            </h2>
+            <p className="mt-4 text-lg leading-relaxed text-primary-foreground/90">
+              Most people who qualify for these waivers have never heard of them. If
+              you work at a shelter, a library, a church, a food pantry, a probation
+              office, or an ER — or you just know someone sleeping rough — this is the
+              whole message:
+            </p>
+            <blockquote className="mt-6 rounded-2xl border border-primary-foreground/25 bg-primary-foreground/10 p-6 text-lg leading-relaxed">
+              Pennsylvania will replace your birth certificate and photo ID for free if
+              you're experiencing homelessness. The forms need a nonprofit or social
+              worker to sign. Klear Path does that, at no cost — {PRIMARY_PHONE.display}{" "}
+              or klearpathhome.org/get-help.
+            </blockquote>
+            <p className="mt-6 text-primary-foreground/80">
+              Caseworkers and outreach teams: call us directly. We'll take referrals by
+              phone and handle the paperwork on our end.
+            </p>
           </div>
         </div>
       </section>

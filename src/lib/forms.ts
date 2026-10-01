@@ -43,6 +43,8 @@ export type HelpRequestInput = {
   phone?: string;
   email?: string;
   county?: string;
+  /** Free text. Determines which fee waiver applies and who can attest to it. */
+  housingSituation?: string;
   /** Document ids from the /get-help checklist. */
   documents: string[];
   documentsOther?: string;
@@ -76,6 +78,7 @@ export async function submitHelpRequest(input: HelpRequestInput): Promise<void> 
     phone,
     email,
     county: clean(input.county),
+    housing_situation: clean(input.housingSituation),
     documents: input.documents,
     documents_other: clean(input.documentsOther),
     deadline: clean(input.deadline),

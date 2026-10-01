@@ -24,6 +24,10 @@ create table if not exists public.help_requests (
   phone text check (char_length(phone) <= 40),
   email text check (char_length(email) <= 254),
   county text check (char_length(county) <= 120),
+  -- Free text, because the fee-waiver path depends on it: the PA birth
+  -- certificate waiver and PennDOT's Act 131 free ID both turn on whether the
+  -- person is experiencing homelessness and who can attest to it.
+  housing_situation text check (char_length(housing_situation) <= 400),
 
   documents text[] not null default '{}',
   documents_other text check (char_length(documents_other) <= 200),
