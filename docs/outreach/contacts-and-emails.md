@@ -4,11 +4,45 @@ Four organizations worth contacting, in priority order. Each email is written to
 answerable in two minutes — that's the point. A long email asking a vague question gets
 filed; a short one asking a specific question gets a reply.
 
-**Fill in before sending:** `[YOUR TITLE]` and your direct phone. Everything else is ready.
+**Ready to send as-is.** Signed Erick McKee, Executive Director, with the main line
+(215) 986-7246 — swap in a direct number if you'd rather these land on your cell.
 
 **One rule throughout:** you are not asking anyone to do your work, take your clients, or
 vet your organization. You are asking people who already solved a problem how they
 solved it. That is a flattering question and most people answer it.
+
+---
+
+## How to describe Klear Path
+
+Use this paragraph, or something close to it, in anything you send. It is the reusable
+piece — it belongs in grant narratives and partner conversations too, not just these
+emails.
+
+> Klear Path Home is a 501(c)(3) in Montgomery County building a workforce-driven
+> housing stability program — transitional housing paired with employment and
+> reintegration support, designed from lived experience rather than from the outside in.
+> We're in development on the housing side. We're starting with identity documents
+> because that's the first barrier in the sequence: nothing downstream works until
+> someone can prove who they are.
+
+Why it's worded that way:
+
+- **"Building" and "in development" are doing necessary work.** A CoC knows every
+  organization that operates housing in their county. Implying you're one of them is the
+  fastest way to lose the room. Naming your stage plainly costs you nothing and buys you
+  everything — nobody distrusts a founder who says where they actually are.
+- **"Starting with documents because that's the first barrier"** reframes the document
+  work as sequencing rather than as your entire scope. "We do document assistance" sounds
+  small. "We're starting at the front of the chain" sounds like someone who understands
+  the chain. It's also simply true.
+- **"From lived experience rather than from the outside in"** is one clause, not a story.
+  It signals where your authority comes from without turning a cold email into a
+  narrative. The full story is yours to tell once you're in a conversation.
+
+Resist expanding this. The scope is conveyed; adding paragraphs about the model makes it
+read as a pitch, and these emails are not a pitch — they're a narrow technical question
+from someone who clearly knows what they're building.
 
 ---
 
@@ -35,9 +69,12 @@ like you didn't check. Acknowledging the boundary is what makes the rest credibl
 > Hello,
 >
 > I run Klear Path Home, a 501(c)(3) in Montgomery County (EIN 41-3156622). We're
-> starting a program that helps people replace birth certificates, state IDs, Social
-> Security cards, and DD-214s — paying the fee where there's no waiver, and helping
-> people use the waiver where there is one.
+> building a workforce-driven housing stability program — transitional housing paired
+> with employment and reintegration support, designed from lived experience. We're in
+> development on the housing side, and we're starting with identity documents, because
+> nothing downstream works until someone can prove who they are. That means birth
+> certificates, state IDs, Social Security cards, and DD-214s: paying the fee where
+> there's no waiver, and helping people use the waiver where there is one.
 >
 > We're outside your service area and I'm not asking you to take anyone on. I'm asking
 > because you've filed more of these than anyone in the state.
@@ -62,9 +99,9 @@ like you didn't check. Acknowledging the boundary is what makes the rest credibl
 > Thank you for the work you do. The chicken-and-egg problem you've written about is
 > exactly why we're building this.
 >
-> [NAME]
-> [YOUR TITLE], Klear Path Home, Inc.
-> [PHONE] · erickmckee@klearpathhome.org · klearpathhome.org
+> Erick McKee
+> Executive Director, Klear Path Home, Inc.
+> (215) 986-7246 · erickmckee@klearpathhome.org · klearpathhome.org
 
 ---
 
@@ -92,11 +129,17 @@ standing the waiver turns on. This is the highest-leverage thing on the list.
 > 501(c)(3) based in North Wales (EIN 41-3156622), serving Montgomery and Bucks Counties
 > and the Pottstown area.
 >
-> We run a document-assistance program: we help people experiencing homelessness replace
-> birth certificates, state IDs, Social Security cards, and DD-214s. We pay the fee where
-> there's no waiver, and help people access the state waivers where there is one —
-> including the PA birth certificate fee waiver and the free PennDOT photo ID under Act
-> 131 of 2020.
+> We're building a workforce-driven housing stability program — transitional housing
+> paired with employment and reintegration support, designed from lived experience rather
+> than from the outside in. We're in development on the housing side, and I'd rather be
+> part of the county's system as we build than show up with it already built.
+>
+> We're starting with identity documents, because that's the first barrier in the
+> sequence: nothing downstream works until someone can prove who they are. We help people
+> replace birth certificates, state IDs, Social Security cards, and DD-214s — covering
+> the fee where there's no waiver, and helping people access the state waivers where
+> there is one, including the PA birth certificate fee waiver and the free PennDOT photo
+> ID under Act 131 of 2020.
 >
 > Could you tell me what the membership process looks like and when the CoC next meets?
 > I'd also like to be added to the CoC mailing list.
@@ -110,10 +153,10 @@ standing the waiver turns on. This is the highest-leverage thing on the list.
 >
 > Thank you,
 >
-> [NAME]
-> [YOUR TITLE], Klear Path Home, Inc.
+> Erick McKee
+> Executive Director, Klear Path Home, Inc.
 > 410 Hopkins Ct, North Wales, PA 19454
-> [PHONE] · erickmckee@klearpathhome.org · klearpathhome.org
+> (215) 986-7246 · erickmckee@klearpathhome.org · klearpathhome.org
 
 ---
 
@@ -136,8 +179,9 @@ Send the same email as #2, with these two changes:
   alongside it."*
 
 That second line matters. Counties are wary of nonprofits that show up and run a parallel
-system. Saying you want to feed into theirs, unprompted, puts you on the right side of
-that immediately.
+system — and that wariness goes up, not down, when the nonprofit is building housing.
+Saying you want to feed into theirs, unprompted and before anyone asks, puts you on the
+right side of it immediately.
 
 ---
 
@@ -165,10 +209,11 @@ or housing.
 >
 > Hello,
 >
-> I run Klear Path Home, a 501(c)(3) in Montgomery County (EIN 41-3156622). We help
-> people experiencing homelessness replace birth certificates, state IDs, Social Security
-> cards, and DD-214s — covering the fee where there's no waiver and helping people use
-> the state waivers where there is one.
+> I run Klear Path Home, a 501(c)(3) in Montgomery County (EIN 41-3156622). We're
+> building a workforce-driven housing stability program — transitional housing paired
+> with employment and reintegration support — and we're starting with identity documents,
+> because nothing downstream works until someone can prove who they are. We cover the fee
+> where there's no waiver and help people use the state waivers where there is one.
 >
 > Two reasons I'm writing:
 >
@@ -185,9 +230,9 @@ or housing.
 >
 > Thank you,
 >
-> [NAME]
-> [YOUR TITLE], Klear Path Home, Inc.
-> [PHONE] · erickmckee@klearpathhome.org · klearpathhome.org
+> Erick McKee
+> Executive Director, Klear Path Home, Inc.
+> (215) 986-7246 · erickmckee@klearpathhome.org · klearpathhome.org
 
 ---
 
@@ -195,11 +240,12 @@ or housing.
 
 Shorter is better on the phone. Something like:
 
-> "Hi — my name's [NAME], I run a nonprofit in Montgomery County called Klear Path Home.
-> We help people experiencing homelessness replace lost birth certificates and IDs. I'm
-> not calling for services and I'm not selling anything. I've got one question about the
-> advocate signature on the state's fee waiver form, and I'm trying to get it right
-> before we start filing. Is there someone there who'd know, or should I email?"
+> "Hi — my name's Erick McKee, I run a nonprofit in Montgomery County called Klear Path Home.
+> We're building a transitional housing and workforce program, and we're starting with
+> helping people replace lost birth certificates and IDs. I'm not calling for services
+> and I'm not selling anything. I've got one question about the advocate signature on the
+> state's fee waiver form, and I'm trying to get it right before we start filing. Is
+> there someone there who'd know, or should I email?"
 
 Then stop talking. The specific, narrow question is what gets you transferred to the
 person who knows instead of into a voicemail box.

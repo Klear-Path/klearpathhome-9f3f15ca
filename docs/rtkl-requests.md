@@ -44,11 +44,15 @@ Advocate Eligibility
 >    qualifies as a facility where an applicant is "receiving services" for purposes of
 >    that attestation.
 >
-> 4. The current version of the application form and its instructions.
+> 4. Any record stating whether an organization that operates transitional or
+>    supportive housing qualifies for purposes of that attestation, and whether the
+>    applicant must be residing there as opposed to receiving non-residential services.
 >
-> 5. Any record describing the grounds on which such applications have been rejected.
+> 5. The current version of the application form and its instructions.
 >
-> I request these records in electronic format, delivered by email to [YOUR EMAIL].
+> 6. Any record describing the grounds on which such applications have been rejected.
+>
+> I request these records in electronic format, delivered by email to erickmckee@klearpathhome.org.
 >
 > If any portion of this request is denied, please cite the specific statutory basis for
 > each withholding and provide the remaining responsive records.
@@ -56,10 +60,10 @@ Advocate Eligibility
 > If fees are expected to exceed $25, please notify me before processing.
 >
 > Thank you,
-> [NAME], [TITLE]
+> Erick McKee, Executive Director
 > Klear Path Home, Inc. — 501(c)(3), EIN 41-3156622
 > 410 Hopkins Ct, North Wales, PA 19454
-> [PHONE] · [EMAIL]
+> (215) 986-7246 · erickmckee@klearpathhome.org
 
 ---
 
@@ -96,7 +100,7 @@ Applicants Experiencing Homelessness
 >
 > 5. The current version of Form DL-54H and the related fact sheet.
 >
-> I request these records in electronic format, delivered by email to [YOUR EMAIL].
+> I request these records in electronic format, delivered by email to erickmckee@klearpathhome.org.
 >
 > If any portion of this request is denied, please cite the specific statutory basis for
 > each withholding and provide the remaining responsive records.
@@ -104,10 +108,10 @@ Applicants Experiencing Homelessness
 > If fees are expected to exceed $25, please notify me before processing.
 >
 > Thank you,
-> [NAME], [TITLE]
+> Erick McKee, Executive Director
 > Klear Path Home, Inc. — 501(c)(3), EIN 41-3156622
 > 410 Hopkins Ct, North Wales, PA 19454
-> [PHONE] · [EMAIL]
+> (215) 986-7246 · erickmckee@klearpathhome.org
 
 ---
 
