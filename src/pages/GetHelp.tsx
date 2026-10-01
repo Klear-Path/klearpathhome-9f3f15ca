@@ -203,7 +203,7 @@ const GetHelp = () => {
               Pennsylvania already waives these fees for people experiencing
               homelessness. Almost nobody uses the waivers, because the forms require a
               nonprofit, a social worker, or an attorney to vouch for you — and if you're
-              sleeping in your car, you don't have one. We're that organization. Where
+              sleeping in your car, you don't have one. That's the gap we close. Where
               there's no waiver, we pay the fee.
             </p>
 
@@ -316,9 +316,16 @@ const GetHelp = () => {
                 exist. The fee was never really the barrier — the signature was.
               </p>
               <p className="font-medium text-foreground">
-                We're a 501(c)(3) that provides these services, so we can sign. That's the
-                whole point of this page. Ask, and we'll fill out our half, attach what the
-                state needs, and tell you exactly where to take it.
+                That's the gap we exist to close. We're a 501(c)(3) that provides these
+                services, so where we can sign for you, we sign. Where the form needs
+                someone else — the shelter you're actually staying at, a caseworker, a
+                lawyer — we know who to ask, and we make that call with you instead of
+                handing you a phone number.
+              </p>
+              <p>
+                Either way, you are not doing this alone and you are not paying. Ask, and
+                we'll fill out our half, attach what the state needs, and tell you exactly
+                where to take it.
               </p>
             </div>
 
