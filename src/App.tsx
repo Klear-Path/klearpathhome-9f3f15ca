@@ -22,6 +22,7 @@ import CorporateSponsors from "./pages/CorporateSponsors";
 import EmployerPartners from "./pages/EmployerPartners";
 import ThankYou from "./pages/ThankYou";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
+import PartnerDesk from "./pages/PartnerDesk";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -58,6 +59,7 @@ const App = () => (
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/partner-desk" element={<PartnerDesk />} />
             <Route path="/privacy" element={<Navigate to="/privacy-policy" replace />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
